@@ -3,8 +3,8 @@
 -export_type([rtree/0, geometry/0]).
 
 % Expose opaque type references
--opaque rtree() :: any().
--opaque geometry() :: any().
+-type rtree() :: any().
+-type geometry() :: any().
 
 % Returns a new empty R* tree
 -spec new() -> rtree().
@@ -22,16 +22,16 @@ delete(_Tree, _Geometry) -> ok.
 
 % Searches for the geometries contained or intersecting
 % the given geometry
--spec searchWithin(rtree(), geometry()) -> [geometry()].
+-spec searchWithin(rtree(), geometry()) -> list(geometry()).
 searchWithin(_Tree, _Geometry) -> ok.
 
 % Searches for the K-nearest neighbors to the given
 % geometry.
--spec searchNearest(rtree(), geometry(), integer()) -> [geometry()].
+-spec searchNearest(rtree(), geometry(), integer()) -> list(geometry()).
 searchNearest(_Tree, _Geometry, _K) -> ok.
 
 % Searches for the geometries contained or intersecting
 % the given geometry
--spec searchAround(rtree(), geometry(), float()) -> [geometry()].
+-spec searchAround(rtree(), geometry(), float()) -> list(geometry()).
 searchAround(_Tree, _Geometry, _Distance) -> ok.
 
