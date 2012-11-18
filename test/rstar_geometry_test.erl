@@ -11,6 +11,7 @@ main_test_() ->
      [
       fun new_zero_dimension/1,
       fun missing_axis/1,
+      fun bad_axis/1,
       fun correct_input/1,
       fun point2d/1,
       fun point3d/1
@@ -32,6 +33,14 @@ missing_axis(_) ->
         begin
             ?assertEqual({error, badarg},
                          rstar_geometry:new(2, [{1, 2}], test))
+        end
+    ).
+
+bad_axis(_) ->
+    ?_test(
+        begin
+            ?assertEqual({error, badarg},
+                         rstar_geometry:new(2, [{1, 2}, {3, 2}], test))
         end
     ).
 
