@@ -8,4 +8,11 @@
     value
 }).
 
+% A rtree object contains the root node and the dimensionality
+% of the entire tree. All the geometries associated with the tree
+% must have the same dimensionality
+-record(rtree, {
+    dimensions,
+    root
+}).
 
