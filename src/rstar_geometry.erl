@@ -18,5 +18,5 @@ point2d(X, Y, Value) -> new(2, [{X, X}, {Y, Y}], Value).
 
 % Helper to create a 3D point
 -spec point3d(float(), float(), float(), any()) -> #geometry{}.
-point3d(X, Y, Z, Value) -> new(2, [{X, X}, {Y, Y}, {Z, Z}], Value).
+point3d(X, Y, Z, Value) -> new(3, [{X, X}, {Y, Y}, {Z, Z}], Value).
 
