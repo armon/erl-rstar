@@ -1,5 +1,5 @@
 -module(rstar).
--export([new/1, insert/2, delete/2, search_within/2, search_nearest/3, search_around/3]).
+-export([new/1, new/2, insert/2, delete/2, search_within/2, search_nearest/3, search_around/3]).
 -export_type([rtree/0, geometry/0]).
 
 -include("../include/rstar.hrl").
@@ -9,10 +9,15 @@
 -type geometry() :: #geometry{}.
 
 
-% Returns a new empty R* tree of the specified dimensionality
+% Returns a new empty R* tree of the specified dimensionality and default parameters
 -spec new(integer()) -> rtree() | {error, badarg}.
-new(Dimensions) when Dimensions =< 1 -> {error, badarg};
-new(Dimensions) -> #rtree{dimensions=Dimensions}.
+new(Dimensions) -> new(Dimensions, #rt_params{}).
+
+
+% Returns a new empty R* tree of the specified dimensionality and parameters
+-spec new(integer(), #rt_params{}) -> rtree() | {error, badarg}.
+new(Dimensions, _) when Dimensions =< 1 -> {error, badarg};
+new(Dimensions, Params) -> #rtree{dimensions=Dimensions, params=Params}.
 
 
 % Inserts a new geometric point into the R* tree and

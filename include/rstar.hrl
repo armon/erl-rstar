@@ -13,6 +13,24 @@
 % must have the same dimensionality
 -record(rtree, {
     dimensions,
+    params,
     root
+}).
+
+% Contains the parameters of the R*-tree. Contains a default configuration.
+-record(rt_params, {
+    max=32,
+    min=12,
+    shuffle=10
+}).
+
+% A leaf record contains inserted Geometries and associated values
+-record(leaf, {
+    nodes=[]
+}).
+
+% A node record contains pointers to other nodes or leaves
+-record(node, {
+    children=[]
 }).
 
