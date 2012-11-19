@@ -19,7 +19,10 @@ main_test_() ->
       fun point3d/1,
       fun bounding_2d/1,
       fun bounding_3d/1,
-      fun area/1
+      fun area/1,
+      fun no_intersect/1,
+      fun intersect_2d/1,
+      fun intersect_3d/1
      ]}.
 
 setup() -> ok.
@@ -127,8 +130,56 @@ area(_) ->
 
             Geo3d = #geometry{dimensions=2, mbr=[{0,2}, {0,2}, {0,8}],
                                value=undefined},
-            ?assertEqual(32, rstar_geometry:area(Geo3d))
+            ?assertEqual(32, rstar_geometry:area(Geo3d)),
 
+            GeoPoint = #geometry{dimensions=2, mbr=[{3,3}, {3,3}],
+                               value=undefined},
+            ?assertEqual(0, rstar_geometry:area(GeoPoint))
+        end
+    ).
+
+no_intersect(_) ->
+    ?_test(
+        begin
+            Geo1 = #geometry{dimensions=2, mbr=[{0,2}, {0,2}],
+                               value=undefined},
+
+            Geo2 = #geometry{dimensions=2, mbr=[{4,6}, {0,2}],
+                               value=undefined},
+
+            ?assertEqual(undefined, rstar_geometry:intersect(Geo1, Geo2))
+        end
+    ).
+
+intersect_2d(_) ->
+    ?_test(
+        begin
+            Geo1 = #geometry{dimensions=2, mbr=[{0,2}, {0,2}],
+                               value=tubez},
+
+            Geo2 = #geometry{dimensions=2, mbr=[{1,3}, {0,2}],
+                               value=bar},
+
+            Expect = #geometry{dimensions=2, mbr=[{1,2}, {0,2}],
+                               value=undefined},
+
+            ?assertEqual(Expect, rstar_geometry:intersect(Geo1, Geo2))
+        end
+    ).
+
+intersect_3d(_) ->
+    ?_test(
+        begin
+            Geo1 = #geometry{dimensions=3, mbr=[{0,3}, {0,3}, {0,3}],
+                               value=tubez},
+
+            Geo2 = #geometry{dimensions=3, mbr=[{2,5}, {2,5}, {2, 5}],
+                               value=bar},
+
+            Expect = #geometry{dimensions=3, mbr=[{2,3}, {2,3}, {2, 3}],
+                               value=undefined},
+
+            ?assertEqual(Expect, rstar_geometry:intersect(Geo1, Geo2))
         end
     ).
 

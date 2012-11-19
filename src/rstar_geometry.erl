@@ -1,5 +1,6 @@
 -module(rstar_geometry).
--export([new/3, origin/1, point2d/3, point3d/4, bounding_box/1, area/1]).
+-export([new/3, origin/1, point2d/3, point3d/4, bounding_box/1,
+         area/1, intersect/2]).
 
 -include("../include/rstar.hrl").
 
@@ -57,6 +58,25 @@ area(Geometry) ->
     lists:foldl(fun({MinV, MaxV}, Sum) ->
         Sum * (MaxV - MinV)
     end, 1, Geometry#geometry.mbr).
+
+
+% Returns the overlapping geometry or 0
+-spec intersect(#geometry{}, #geometry{}) -> #geometry{} | undefined.
+intersect(Geo1, Geo2) ->
+    Overlap = lists:zipwith(fun ({MinA, MaxA}, {MinB, MaxB}) ->
+            Min = max(MinA, MinB),
+            Max = min(MaxA, MaxB),
+            case Min =< Max of
+                true -> {Min, Max};
+                _ -> undefined
+            end
+       end, Geo1#geometry.mbr, Geo2#geometry.mbr),
+
+    % Check if any of the axes did not overlap
+    case lists:member(undefined, Overlap) of
+        true -> undefined;
+        _ -> Geo1#geometry{mbr=Overlap, value=undefined}
+    end.
 
 
 % Verifies that the max axis value is greater or equal to the minimum
