@@ -1,5 +1,5 @@
 -module(rstar_geometry).
--export([new/3, point2d/3, point3d/4, bounding_box/1]).
+-export([new/3, origin/1, point2d/3, point3d/4, bounding_box/1]).
 
 -include("../include/rstar.hrl").
 
@@ -12,6 +12,14 @@ new(Dimensions, MBR, Value) ->
             #geometry{dimensions=Dimensions, mbr=MBR, value=Value};
         _ -> {error, badarg}
     end.
+
+
+% Creates a point at the origin with the proper dimensionality
+-spec origin(integer()) -> #geometry{} | {error, badarg}.
+origin(Dimensions) when Dimensions < 1 -> {error, badarg};
+origin(Dimensions) ->
+    MBR = [{0, 0} || _D <- lists:seq(1, Dimensions)],
+    #geometry{dimensions=Dimensions, mbr=MBR}.
 
 
 % Helper to create a 2D point

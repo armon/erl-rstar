@@ -13,6 +13,8 @@ main_test_() ->
       fun missing_axis/1,
       fun bad_axis/1,
       fun correct_input/1,
+      fun origin_no_dimensions/1,
+      fun origin_2d/1,
       fun point2d/1,
       fun point3d/1,
       fun bounding_2d/1,
@@ -54,6 +56,22 @@ correct_input(_) ->
                          rstar_geometry:new(2, [{1, 2}, {3, 4}], foo))
         end
     ).
+
+origin_no_dimensions(_) ->
+    ?_test(
+        begin
+            ?assertEqual({error, badarg}, rstar_geometry:origin(0))
+        end
+    ).
+
+origin_2d(_) ->
+    ?_test(
+        begin
+            Expect = #geometry{dimensions=2, mbr=[{0,0}, {0,0}]},
+            ?assertEqual(Expect, rstar_geometry:origin(2))
+        end
+    ).
+
 
 point2d(_) ->
     ?_test(
