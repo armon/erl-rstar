@@ -18,7 +18,8 @@ main_test_() ->
       fun point2d/1,
       fun point3d/1,
       fun bounding_2d/1,
-      fun bounding_3d/1
+      fun bounding_3d/1,
+      fun area/1
      ]}.
 
 setup() -> ok.
@@ -114,6 +115,20 @@ bounding_3d(_) ->
             Geo3 = rstar_geometry:point3d(3, 3, 3, bar),
             ?assertEqual(BBExpect,
                          rstar_geometry:bounding_box([Geo1, Geo2, Geo3]))
+        end
+    ).
+
+area(_) ->
+    ?_test(
+        begin
+            Geo2d = #geometry{dimensions=2, mbr=[{0,2}, {0,2}],
+                               value=undefined},
+            ?assertEqual(4, rstar_geometry:area(Geo2d)),
+
+            Geo3d = #geometry{dimensions=2, mbr=[{0,2}, {0,2}, {0,8}],
+                               value=undefined},
+            ?assertEqual(32, rstar_geometry:area(Geo3d))
+
         end
     ).
 

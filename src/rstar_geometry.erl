@@ -1,5 +1,5 @@
 -module(rstar_geometry).
--export([new/3, origin/1, point2d/3, point3d/4, bounding_box/1]).
+-export([new/3, origin/1, point2d/3, point3d/4, bounding_box/1, area/1]).
 
 -include("../include/rstar.hrl").
 
@@ -49,6 +49,14 @@ bounding_box([First | MoreGeo]) ->
     % Create a binding geometry with the new MBR
     % and an undefined value
     First#geometry{mbr=BindingMBR, value=undefined}.
+
+
+% Returns the area of the given geometry
+-spec area(#geometry{}) -> float().
+area(Geometry) ->
+    lists:foldl(fun({MinV, MaxV}, Sum) ->
+        Sum * (MaxV - MinV)
+    end, 1, Geometry#geometry.mbr).
 
 
 % Verifies that the max axis value is greater or equal to the minimum
