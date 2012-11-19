@@ -27,7 +27,11 @@ new_bad_dimension(_) ->
 new_valid(_) ->
     ?_test(
         begin
-            ?assertEqual(#rtree{dimensions=2}, rstar:new(2))
+            Root1 = rstar_geometry:origin(2),
+            DefParams = #rt_params{},
+            Root2 = Root1#geometry{value=#leaf{}},
+            Tree = #rtree{dimensions=2, params=DefParams,root=Root2},
+            ?assertEqual(Tree, rstar:new(2))
         end
     ).
 
