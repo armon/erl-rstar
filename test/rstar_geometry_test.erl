@@ -14,7 +14,9 @@ main_test_() ->
       fun bad_axis/1,
       fun correct_input/1,
       fun point2d/1,
-      fun point3d/1
+      fun point3d/1,
+      fun bounding_2d/1,
+      fun bounding_3d/1
      ]}.
 
 setup() -> ok.
@@ -69,6 +71,31 @@ point3d(_) ->
                                value=foo},
             ?assertEqual(Expect,
                          rstar_geometry:point3d(1, 2, 3, foo))
+        end
+    ).
+
+bounding_2d(_) ->
+    ?_test(
+        begin
+            BBExpect = #geometry{dimensions=2, mbr=[{0,2}, {0,2}],
+                               value=undefined},
+            Geo1 = rstar_geometry:point2d(0, 0, test),
+            Geo2 = rstar_geometry:point2d(2, 2, foobar),
+            ?assertEqual(BBExpect,
+                         rstar_geometry:bounding_box([Geo1, Geo2]))
+        end
+    ).
+
+bounding_3d(_) ->
+    ?_test(
+        begin
+            BBExpect = #geometry{dimensions=3, mbr=[{0,3}, {0,3}, {0,3}],
+                               value=undefined},
+            Geo1 = rstar_geometry:point3d(0, 0, 0, test),
+            Geo2 = rstar_geometry:point3d(1, 1, 1, foobar),
+            Geo3 = rstar_geometry:point3d(3, 3, 3, bar),
+            ?assertEqual(BBExpect,
+                         rstar_geometry:bounding_box([Geo1, Geo2, Geo3]))
         end
     ).
 
