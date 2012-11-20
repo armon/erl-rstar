@@ -1,6 +1,6 @@
 -module(rstar_geometry).
 -export([new/3, origin/1, point2d/3, point3d/4, bounding_box/1,
-         area/1, intersect/2]).
+         area/1, intersect/2, num_edges/1, margin/1]).
 
 -include("../include/rstar.hrl").
 
@@ -58,6 +58,28 @@ area(Geometry) ->
     lists:foldl(fun({MinV, MaxV}, Sum) ->
         Sum * (MaxV - MinV)
     end, 1, Geometry#geometry.mbr).
+
+
+% Returns the number of edges in a given geometry
+-spec num_edges(#geometry{}) -> integer().
+num_edges(Geometry) ->
+    N = Geometry#geometry.dimensions,
+    trunc(math:pow(2, N - 1) * N).
+
+
+% Returns the margin of the given geometry
+-spec margin(#geometry{}) -> float().
+margin(Geometry) ->
+    % Sum length of each axis
+    AxisSum = lists:foldl(fun({MinV, MaxV}, Sum) ->
+        Sum + (MaxV - MinV)
+    end, 0, Geometry#geometry.mbr),
+
+    % Figure out the scaling factor,
+    Scale = num_edges(Geometry) / Geometry#geometry.dimensions,
+
+    % Multiple the sum by the scale
+    AxisSum * Scale.
 
 
 % Returns the overlapping geometry or 0

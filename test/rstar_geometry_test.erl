@@ -22,7 +22,9 @@ main_test_() ->
       fun area/1,
       fun no_intersect/1,
       fun intersect_2d/1,
-      fun intersect_3d/1
+      fun intersect_3d/1,
+      fun num_edges_test/1,
+      fun margin_test/1
      ]}.
 
 setup() -> ok.
@@ -180,6 +182,32 @@ intersect_3d(_) ->
                                value=undefined},
 
             ?assertEqual(Expect, rstar_geometry:intersect(Geo1, Geo2))
+        end
+    ).
+
+num_edges_test(_) ->
+    ?_test(
+        begin
+            Geo1 = #geometry{dimensions=2, mbr=[{0,3}, {0,3}]},
+            Geo2 = #geometry{dimensions=3, mbr=[{2,5}, {2,5}, {2, 5}]},
+            Geo3 = #geometry{dimensions=4, mbr=[{2,5}, {2,5}, {2, 5}, {0, 10}]},
+
+            ?assertEqual(4, rstar_geometry:num_edges(Geo1)),
+            ?assertEqual(12, rstar_geometry:num_edges(Geo2)),
+            ?assertEqual(32, rstar_geometry:num_edges(Geo3))
+        end
+    ).
+
+margin_test(_) ->
+    ?_test(
+        begin
+            Geo1 = #geometry{dimensions=2, mbr=[{0,3}, {0,3}]},
+            Geo2 = #geometry{dimensions=3, mbr=[{2,5}, {2,5}, {2, 5}]},
+            Geo3 = #geometry{dimensions=4, mbr=[{2,5}, {2,5}, {2, 5}, {0, 10}]},
+
+            ?assertEqual(12.0, rstar_geometry:margin(Geo1)),
+            ?assertEqual(36.0, rstar_geometry:margin(Geo2)),
+            ?assertEqual(152.0, rstar_geometry:margin(Geo3))
         end
     ).
 
