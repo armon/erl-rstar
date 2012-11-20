@@ -73,7 +73,7 @@ overlap(Geo, OtherGeo) ->
 % Returns the list of geometry objects
 % that will have minimal overlap with the give
 % geometry ovject
-minimal_overlap(Geo, OtherGeo) ->
+minimal_overlap_delta(Geo, OtherGeo) ->
     SortedOverlap = lists:map(fun (G) ->
         % Get a geometry that encompases this point
         Union = rstar_geometry:bounding_box([Geo, G]),
