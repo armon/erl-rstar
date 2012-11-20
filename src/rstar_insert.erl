@@ -73,6 +73,7 @@ overlap(Geo, OtherGeo) ->
 % Returns the list of geometry objects
 % that will have minimal change in overlap given the
 % addition of a new geometry
+minimal_overlap_delta(_Geo, [X]) -> [X];
 minimal_overlap_delta(Geo, OtherGeo) ->
     Overlap = lists:map(fun (G) ->
         % Get a geometry that encompases this point
@@ -101,6 +102,7 @@ minimal_overlap_delta(Geo, OtherGeo) ->
 % Returns the list of geometry objects
 % that will have minimal change in area given the
 % addition of a geometryobject
+minimal_area_delta(_Geo, [X]) -> [X];
 minimal_area_delta(Geo, OtherGeo) ->
     Areas = lists:map(fun (G) ->
         % Get a geometry that encompases this point
@@ -128,6 +130,7 @@ minimal_area_delta(Geo, OtherGeo) ->
 
 % Returns the list of geometry objects
 % that will have minimal area
+minimal_area(_Geo, [X]) -> [X];
 minimal_area(_Geo, OtherGeo) ->
     Areas = lists:map(fun (G) ->
         % Compute the area
@@ -148,6 +151,11 @@ minimal_area(_Geo, OtherGeo) ->
     lists:takewhile(fun ({Area, _}) ->
         Area == FirstArea
     end, SortedArea).
+
+
+% Helper method that is used to strip the delta
+% or area associated with the minimal_* functions.
+strip_delta(Geo) -> [G || {_Delta, G} <- Geo].
 
 
 % Split:
