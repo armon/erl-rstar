@@ -31,22 +31,41 @@
 % ChooseSubtree:
 % CS1: Set N to be the root
 % CS2: If N is leaf, return N
-% CS2b: If N points to leaves, select on 1) Minimal Overlap 2) Minimal Area Change 3) Smallest Area
-% CS2c: IF N points to nodes, select on 1) Minimal Area Change 2) Smallest Area
+% CS2b: If N points to leaves, select on
+%   1) Minimal Overlap
+%   2) Minimal Area Change
+%   3) Smallest Area
+% CS2c: IF N points to nodes, select on
+%   1) Minimal Area Change
+%   2) Smallest Area
 choose_subtree(Tree, Geo) ->
     choose_subtree(Tree, Tree#rtree.root, Geo).
 
+choose_subtree(_, Node=#geometry{value=Value}, _) when is_record(Value, leaf) -> Node;
+choose_subtree(Tree, Node, Geo) ->
+    % Extract the children
+    Children = Node#geometry.value#node.children,
 
-choose_subtree(_, Node, _) ->
-    case Node#geometry.value of
-        #leaf{} -> Node;
-        #node{children=[FirstChild | _Other]} ->
-            % Check what kind of nodes the children are
-            case FirstChild#geometry.value of
-                #leaf{} -> ok;
-                #node{} -> ok
-            end
-    end.
+    % Get the first child
+    [FirstChild | _] = Children,
+
+    % Check what kind of nodes the children are
+    OptimialChildren = case FirstChild#geometry.value of
+        #leaf{} ->
+            MinOverlapDelta = minimal_overlap_delta(Geo, Children),
+            MinAreaDelta = minimal_area_delta(Geo, MinOverlapDelta),
+            minimal_area(MinAreaDelta);
+
+        #node{} ->
+            MinAreaDelta = minimal_area_delta(Geo, Children),
+            minimal_area(MinAreaDelta)
+    end,
+
+    % Choose the first child
+    [FirstOptimal | _] = OptimialChildren,
+
+    % Recurse
+    choose_subtree(Tree, FirstOptimal, Geo).
 
 
 % Computes the overlap between a given geometry
