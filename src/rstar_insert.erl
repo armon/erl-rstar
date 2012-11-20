@@ -75,6 +75,9 @@ overlap(Geo, OtherGeo) ->
 % addition of a new geometry
 minimal_overlap_delta(_Geo, L=[_X]) -> L;
 minimal_overlap_delta(Geo, OtherGeo) ->
+    strip_delta(minimal_overlap_delta_helper(Geo, OtherGeo)).
+
+minimal_overlap_delta_helper(Geo, OtherGeo) ->
     Overlap = lists:map(fun (G) ->
         % Get a geometry that encompases this point
         Union = rstar_geometry:bounding_box([Geo, G]),
@@ -104,6 +107,9 @@ minimal_overlap_delta(Geo, OtherGeo) ->
 % addition of a geometryobject
 minimal_area_delta(_Geo, L=[_X]) -> L;
 minimal_area_delta(Geo, OtherGeo) ->
+    strip_delta(minimal_area_delta_helper(Geo, OtherGeo)).
+
+minimal_area_delta_helper(Geo, OtherGeo) ->
     Areas = lists:map(fun (G) ->
         % Get a geometry that encompases this point
         Union = rstar_geometry:bounding_box([Geo, G]),
@@ -130,8 +136,11 @@ minimal_area_delta(Geo, OtherGeo) ->
 
 % Returns the list of geometry objects
 % that will have minimal area
-minimal_area(_Geo, L=[_X]) -> L;
-minimal_area(_Geo, OtherGeo) ->
+minimal_area(L=[_X]) -> L;
+minimal_area(OtherGeo) ->
+    strip_delta(minimal_area_helper(OtherGeo)).
+
+minimal_area_helper(OtherGeo) ->
     Areas = lists:map(fun (G) ->
         % Compute the area
         Area = rstar_geometry:area(G),
