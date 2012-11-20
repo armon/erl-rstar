@@ -11,7 +11,9 @@ main_test_() ->
      [
       fun zero_overlap_test/1,
       fun some_overlap_test/1,
-      fun some_overlap_3d_test/1
+      fun some_overlap_3d_test/1,
+      fun minimal_overlap_test/1,
+      fun minimal_overlap_tie_test/1
      ]}.
 
 setup() -> ok.
@@ -44,6 +46,30 @@ some_overlap_3d_test(_) ->
             G2 = #geometry{dimensions=3, mbr=[{1,3}, {0,2}, {0,2}]},
             ?assertEqual(4,
                          rstar_insert:overlap(G1, [G1, G2]))
+        end
+    ).
+
+minimal_overlap_test(_) ->
+    ?_test(
+        begin
+            G0 = #geometry{dimensions=2, mbr=[{1,3}, {0,2}]},
+            G1 = #geometry{dimensions=2, mbr=[{0,2}, {0,2}]},
+            G2 = #geometry{dimensions=2, mbr=[{4,6}, {0,2}]},
+            ?assertEqual([{0, G1}],
+                         rstar_insert:minimal_overlap(G0, [G1, G2]))
+        end
+    ).
+
+minimal_overlap_tie_test(_) ->
+    ?_test(
+        begin
+            G0 = #geometry{dimensions=2, mbr=[{1,3}, {0,2}]},
+            G1 = #geometry{dimensions=2, mbr=[{0,2}, {0,2}]},
+            G2 = #geometry{dimensions=2, mbr=[{2,4}, {0,2}]},
+            G3 = #geometry{dimensions=2, mbr=[{4,6}, {0,2}]},
+
+            ?assertEqual([{2, G1}, {2, G2}],
+                         rstar_insert:minimal_overlap(G0, [G1, G2, G3]))
         end
     ).
 

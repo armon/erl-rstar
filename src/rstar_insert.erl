@@ -74,16 +74,25 @@ overlap(Geo, OtherGeo) ->
 % that will have minimal overlap with the give
 % geometry ovject
 minimal_overlap(Geo, OtherGeo) ->
-    lists:map(fun (G) ->
+    SortedOverlap = lists:map(fun (G) ->
         % Get a geometry that encompases this point
         Union = rstar_geometry:bounding_box([Geo, G]),
 
-        % Compute the Overlap with all other points
-        Delta = overlap(Union, OtherGeo) - overlap(G, OtherGeo)
+        % Compute the change in overlap
+        Delta = overlap(Union, lists:delete(G, OtherGeo)) - overlap(G, OtherGeo),
 
+        % Make a tuple with the delta and the Geo
+        {Delta, G}
 
+    end, OtherGeo),
 
-    end, OtherGeo).
+    % Grab the head element
+    [{FirstDelta, _FirstGeo} | _Tail] = SortedOverlap,
+
+    % Filter the list to only those with equal overlap
+    lists:takewhile(fun ({Delta, _}) ->
+        Delta == FirstDelta
+    end, SortedOverlap).
 
 
 % Split:
