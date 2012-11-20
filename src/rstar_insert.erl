@@ -74,7 +74,7 @@ overlap(Geo, OtherGeo) ->
 % that will have minimal change in overlap given the
 % addition of a new geometry
 minimal_overlap_delta(Geo, OtherGeo) ->
-    SortedOverlap = lists:map(fun (G) ->
+    Overlap = lists:map(fun (G) ->
         % Get a geometry that encompases this point
         Union = rstar_geometry:bounding_box([Geo, G]),
 
@@ -85,6 +85,9 @@ minimal_overlap_delta(Geo, OtherGeo) ->
         {Delta, G}
 
     end, OtherGeo),
+
+    % Sort on the delta
+    SortedOverlap = lists:keysort(1, Overlap),
 
     % Grab the head element
     [{FirstDelta, _FirstGeo} | _Tail] = SortedOverlap,
@@ -99,7 +102,7 @@ minimal_overlap_delta(Geo, OtherGeo) ->
 % that will have minimal change in area given the
 % addition of a geometryobject
 minimal_area_delta(Geo, OtherGeo) ->
-    SortedArea = lists:map(fun (G) ->
+    Areas = lists:map(fun (G) ->
         % Get a geometry that encompases this point
         Union = rstar_geometry:bounding_box([Geo, G]),
 
@@ -111,12 +114,39 @@ minimal_area_delta(Geo, OtherGeo) ->
 
     end, OtherGeo),
 
+    % Sort on the delta
+    SortedArea = lists:keysort(1, Areas),
+
     % Grab the head element
     [{FirstDelta, _FirstGeo} | _Tail] = SortedArea,
 
     % Filter the list to only those with equal area delta
     lists:takewhile(fun ({Delta, _}) ->
         Delta == FirstDelta
+    end, SortedArea).
+
+
+% Returns the list of geometry objects
+% that will have minimal area
+minimal_area(_Geo, OtherGeo) ->
+    Areas = lists:map(fun (G) ->
+        % Compute the area
+        Area = rstar_geometry:area(G),
+
+        % Make a tuple with the area and the Geo
+        {Area, G}
+
+    end, OtherGeo),
+
+    % Sort on the delta
+    SortedArea = lists:keysort(1, Areas),
+
+    % Grab the head element
+    [{FirstArea, _FirstGeo} | _Tail] = SortedArea,
+
+    % Filter the list to only those with equal area delta
+    lists:takewhile(fun ({Area, _}) ->
+        Area == FirstArea
     end, SortedArea).
 
 
