@@ -22,7 +22,9 @@ main_test_() ->
       fun choose_subtree_leaf_test/1,
       fun choose_subtree_one_level_test/1,
       fun choose_subtree_two_level_test/1,
-      fun axis_distribution_test/1
+      fun axis_distribution_test/1,
+      fun axis_split_score_test/1,
+      fun choose_split_axis_test/1
      ]}.
 
 setup() -> ok.
@@ -231,6 +233,50 @@ axis_distribution_test(_) ->
 
             ?assertEqual(Expected2,
                          rstar_insert:axis_distributions(Params2, N, 1))
+        end
+    ).
+
+axis_split_score_test(_) ->
+    ?_test(
+        begin
+            L1 = #geometry{dimensions=2, mbr=[{0,2}, {0,10}], value=#leaf{}},
+            L2 = #geometry{dimensions=2, mbr=[{0,1}, {0,10}], value=#leaf{}},
+            L3 = #geometry{dimensions=2, mbr=[{1,4}, {0,10}], value=#leaf{}},
+            L4 = #geometry{dimensions=2, mbr=[{6,8}, {0,10}], value=#leaf{}},
+            L5 = #geometry{dimensions=2, mbr=[{3,9}, {0,10}], value=#leaf{}},
+            NGeo = rstar_geometry:bounding_box([L1, L2, L3, L4, L5]),
+            N = NGeo#geometry{value=#node{children=[L1, L2, L3, L4, L5]}},
+
+
+            % This is basically just very tedious to figure out.
+            % Based on the Expected1 distribution above, manually compute
+            % the margin sum as 242
+            Params1 = #rt_params{min=1, max=4},
+            ?assertEqual(242.0,
+                         rstar_insert:axis_split_score(Params1, N, 1))
+        end
+    ).
+
+choose_split_axis_test(_) ->
+    ?_test(
+        begin
+            L1 = #geometry{dimensions=2, mbr=[{3,4}, {3,6}], value=#leaf{}},
+            L2 = #geometry{dimensions=2, mbr=[{4,5}, {3,6}], value=#leaf{}},
+            L3 = #geometry{dimensions=2, mbr=[{5,6}, {3,6}], value=#leaf{}},
+            L4 = #geometry{dimensions=2, mbr=[{4,7}, {8,10}], value=#leaf{}},
+            L5 = #geometry{dimensions=2, mbr=[{4,7}, {10,11}], value=#leaf{}},
+            NGeo = rstar_geometry:bounding_box([L1, L2, L3, L4, L5]),
+            N = NGeo#geometry{value=#node{children=[L1, L2, L3, L4, L5]}},
+
+
+            % Difficult to explain, we are creating 3 modes with a bounding box
+            % at {3,6} {3, 6}, and 2 at {4, 7} {8, 11}. A split on the X axis
+            % does not cleanly divide the two groups, and thus there is a large
+            % margin. A split on the Y axis creates 2 clusters, each as tightly
+            % packed squares. We thus expect the Y axis to be selected.
+            Params1 = #rt_params{min=2, max=4},
+            ?assertEqual(2,
+                         rstar_insert:choose_split_axis(Params1, N))
         end
     ).
 
