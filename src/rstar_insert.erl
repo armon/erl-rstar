@@ -194,6 +194,58 @@ strip_delta(Geo) -> [G || {_Delta, G} <- Geo].
 % ChooseSplitAxis
 % CSA1: For each axis: Sort by lower, upper values of axes. Generate (M - 2*m + 2) distributions. Compute S, Sum of Margin values for all distributions.
 % CSA2: Choose Axis with minimum S
+choose_split_axis(Params, Node) ->
+    N = Node#geometry.dimensions,
+    Scored = [{axis_split_score(Params, Node, Axis), Axis} || Axis <- lists:seq(1, N)],
+    Sorted = lists:keysort(1, Scored),
+    [{_, MinAxis} | _] = Sorted,
+    MinAxis.
+
+
+% Computes the Score S for spliting on a given axis
+axis_split_score(Params, Node, Axis) ->
+    % Compute the distributions
+    Distributions = axis_distributions(Params,Node, Axis),
+
+    % Compute the margin sum
+    lists:foldl(fun({GroupA, GroupB}, Sum) ->
+        BoundA = rstar_geometry:bounding_box(GroupA),
+        BoundB = rstar_geometry:bounding_box(GroupB),
+
+        MarginA = rstar_geometry:margin(BoundA),
+        MarginB = rstar_geometry:margin(BoundB),
+
+        Sum + MarginA + MarginB
+
+    end, 0, Distributions).
+
+
+% Returns a list of all the possible distributions
+% along the given axis
+axis_distributions(Params, Node, Axis) ->
+    % Ignore the record type, get the children
+    {_, Children} = Node#geometry.value,
+
+    % Sort the children on the appropriate axis
+    Sorted = lists:sort(fun (A, B) ->
+        {MinA, MaxA} = lists:nth(Axis, A#geometry.mbr),
+        {MinB, MaxB} = lists:nth(Axis, B#geometry.mbr),
+
+        % Sort on the lower and then upper part of the axis
+        if
+            MinA < MinB -> true;
+            MinA == MinB -> MaxA =< MaxB;
+            true -> false
+        end
+    end, Children),
+
+    % Extract the tree parameters
+    Min = Params#rt_params.min,
+    Max = Params#rt_params.max,
+
+    % Build the distribution
+    [lists:sort(K, Sorted) || K <- lists:seq(Min, Max - Min + 1)].
+
 
 % ChooseSplitIndex
 % CSI1: Along choosen axis, choose the distribution with minimum overlap value, resolve tie with minimum area value
