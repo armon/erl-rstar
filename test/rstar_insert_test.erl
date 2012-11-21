@@ -21,7 +21,8 @@ main_test_() ->
       fun strip_delta_test/1,
       fun choose_subtree_leaf_test/1,
       fun choose_subtree_one_level_test/1,
-      fun choose_subtree_two_level_test/1
+      fun choose_subtree_two_level_test/1,
+      fun axis_distribution_test/1
      ]}.
 
 setup() -> ok.
@@ -194,6 +195,42 @@ choose_subtree_two_level_test(_) ->
             % growth to contain it, while the rest will grow very large
             ?assertEqual(L3,
                          rstar_insert:choose_subtree(Tree, G0))
+        end
+    ).
+
+axis_distribution_test(_) ->
+    ?_test(
+        begin
+            L1 = #geometry{dimensions=2, mbr=[{0,2}, {0,4}], value=#leaf{}},
+            L2 = #geometry{dimensions=2, mbr=[{0,1}, {6,10}], value=#leaf{}},
+            L3 = #geometry{dimensions=2, mbr=[{1,4}, {0,4}], value=#leaf{}},
+            L4 = #geometry{dimensions=2, mbr=[{6,5}, {6,10}], value=#leaf{}},
+            L5 = #geometry{dimensions=2, mbr=[{3,9}, {6,10}], value=#leaf{}},
+            NGeo = rstar_geometry:bounding_box([L1, L2, L3, L4, L5]),
+            N = NGeo#geometry{value=#node{children=[L1, L2, L3, L4, L5]}},
+
+
+            % Sorted = [L2, L1, L3, L5, L4],
+            Params1 = #rt_params{min=1, max=4},
+            Expected1 = [
+                {[L2], [L1, L3, L5, L4]},
+                {[L2, L1], [L3, L5, L4]},
+                {[L2, L1, L3], [L5, L4]},
+                {[L2, L1, L3, L5], [L4]}
+            ],
+
+            ?assertEqual(Expected1,
+                         rstar_insert:axis_distributions(Params1, N, 1)),
+
+            % Sorted = [L2, L1, L3, L5, L4],
+            Params2 = #rt_params{min=2, max=4},
+            Expected2 = [
+                {[L2, L1], [L3, L5, L4]},
+                {[L2, L1, L3], [L5, L4]}
+            ],
+
+            ?assertEqual(Expected2,
+                         rstar_insert:axis_distributions(Params2, N, 1))
         end
     ).
 

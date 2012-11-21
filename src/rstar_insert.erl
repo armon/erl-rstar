@@ -244,7 +244,7 @@ axis_distributions(Params, Node, Axis) ->
     Max = Params#rt_params.max,
 
     % Build the distribution
-    [lists:sort(K, Sorted) || K <- lists:seq(Min, Max - Min + 1)].
+    [lists:split(K, Sorted) || K <- lists:seq(Min, Max - Min + 1)].
 
 
 % ChooseSplitIndex
