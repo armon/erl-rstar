@@ -25,7 +25,8 @@ main_test_() ->
       fun axis_distribution_test/1,
       fun axis_split_score_test/1,
       fun choose_split_axis_test/1,
-      fun choose_split_index_test/1
+      fun choose_split_index_test/1,
+      fun split_test/1
      ]}.
 
 setup() -> ok.
@@ -302,6 +303,38 @@ choose_split_index_test(_) ->
             Expected = {[L3, L2, L1], [L4, L5]},
             ?assertEqual(Expected,
                          rstar_insert:choose_split_index(Params1, N, 2))
+        end
+    ).
+
+split_test(_) ->
+    ?_test(
+        begin
+            L1 = #geometry{dimensions=2, mbr=[{3,4}, {3,6}], value=#leaf{}},
+            L2 = #geometry{dimensions=2, mbr=[{4,5}, {3,6}], value=#leaf{}},
+            L3 = #geometry{dimensions=2, mbr=[{5,6}, {3,6}], value=#leaf{}},
+            L4 = #geometry{dimensions=2, mbr=[{4,7}, {8,10}], value=#leaf{}},
+            L5 = #geometry{dimensions=2, mbr=[{4,7}, {10,11}], value=#leaf{}},
+            NGeo = rstar_geometry:bounding_box([L5, L4, L3, L2, L1]),
+            N = NGeo#geometry{value=#leaf{entries=[L5, L4, L3, L2, L1]}},
+
+            % We are creating 3 modes with a bounding box
+            % at {3,6} {3, 6}, and 2 at {4, 7} {8, 11}. A split on the X axis
+            % does not cleanly divide the two groups, and thus there is a large
+            % margin. A split on the Y axis can create 2 clusters, each as tightly
+            % packed squares. We thus expect the two non-overlaping squares to be selected.
+            Params1 = #rt_params{min=2, max=4},
+
+            % Create the expected explits
+            GroupA = [L3, L2, L1],
+            GroupB = [L4, L5],
+            G1Geo = rstar_geometry:bounding_box(GroupA),
+            G2Geo = rstar_geometry:bounding_box(GroupB),
+            G1 = G1Geo#geometry{value=#leaf{entries=GroupA}},
+            G2 = G2Geo#geometry{value=#leaf{entries=GroupB}},
+
+            Expected = {G1, G2},
+            ?assertEqual(Expected,
+                         rstar_insert:split(Params1, N))
         end
     ).
 

@@ -26,7 +26,7 @@
 
 % A leaf record contains inserted Geometries and associated values
 -record(leaf, {
-    nodes=[]
+    entries=[]
 }).
 
 % A node record contains pointers to other nodes or leaves

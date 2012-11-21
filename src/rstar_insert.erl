@@ -190,6 +190,30 @@ strip_delta(Geo) -> [G || {_Delta, G} <- Geo].
 % S1: Invoke ChooseSplitAxis to determine axis to split on
 % S2: Invoke ChooseSplitIndex to split into 2 groups along axis
 % S3: Distribute into 2 groups
+split(Params, Node) ->
+    Axis = choose_split_axis(Params, Node),
+    {GroupA, GroupB} = choose_split_index(Params, Node, Axis),
+
+    % Create a bounding box for the distributions
+    G1Geo = rstar_geometry:bounding_box(GroupA),
+    G2Geo = rstar_geometry:bounding_box(GroupB),
+
+    % Assign the children. The new nodes are a leaf type
+    % only if we are splitting a leaf, otherwise they are
+    % interior nodes.
+    case Node#geometry.value of
+        #leaf{} ->
+            G1 = G1Geo#geometry{value=#leaf{entries=GroupA}},
+            G2 = G2Geo#geometry{value=#leaf{entries=GroupB}};
+
+        #node{} ->
+            G1 = G1Geo#geometry{value=#node{children=GroupA}},
+            G2 = G2Geo#geometry{value=#node{children=GroupB}}
+    end,
+
+    % Return the two new nodes
+    {G1, G2}.
+
 
 % ChooseSplitAxis
 % CSA1: For each axis: Sort by lower, upper values of axes. Generate (M - 2*m + 2) distributions. Compute S, Sum of Margin values for all distributions.
