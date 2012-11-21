@@ -205,7 +205,7 @@ choose_split_axis(Params, Node) ->
 % Computes the Score S for spliting on a given axis
 axis_split_score(Params, Node, Axis) ->
     % Compute the distributions
-    Distributions = axis_distributions(Params,Node, Axis),
+    Distributions = axis_distributions(Params, Node, Axis),
 
     % Compute the margin sum
     lists:foldl(fun({GroupA, GroupB}, Sum) ->
@@ -249,6 +249,29 @@ axis_distributions(Params, Node, Axis) ->
 
 % ChooseSplitIndex
 % CSI1: Along choosen axis, choose the distribution with minimum overlap value, resolve tie with minimum area value
+choose_split_index(Params, Node, Axis) ->
+    % Compute the distributions
+    Distributions = axis_distributions(Params, Node, Axis),
+
+    % Compute the overlap and area scores
+    Scored = lists:map(fun(D={GroupA, GroupB}) ->
+        BoundA = rstar_geometry:bounding_box(GroupA),
+        BoundB = rstar_geometry:bounding_box(GroupB),
+        Overlap = overlap(BoundA, [BoundB]),
+        Area = rstar_geometry:area(BoundA) + rstar_geometry:area(BoundB),
+
+        % Store with the overlap and area
+        {Overlap, Area, D}
+
+    end, Distributions),
+
+    % Sort to get the lowest score. This will first sort on overlap,
+    % and then on area
+    Sorted = lists:sort(Scored),
+
+    % Returns the best distribution
+    [{_, _, Distrib} | _] = Sorted,
+    Distrib.
 
 % InsertData:
 % I1: Invoke Insert with the leaf level as a param to add new geometry
