@@ -12,7 +12,7 @@
 -record(rt_params, {
     max=32,
     min=12,
-    shuffle=10
+    reinsert=10
 }).
 
 % A rtree object contains the root node and the dimensionality
