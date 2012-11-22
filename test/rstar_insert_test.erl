@@ -148,12 +148,11 @@ choose_subtree_leaf_test(_) ->
     ?_test(
         begin
             Root = #geometry{dimensions=2, mbr=[{1,3}, {0,4}], value=#leaf{}},
-            Tree = #rtree{dimensions=2, root=Root},
             G0 = #geometry{dimensions=2, mbr=[{1,3}, {0,4}]},
 
             % Select the root in the case of it being a leaf
             ?assertEqual(Root,
-                         rstar_insert:choose_subtree(Tree, G0))
+                         rstar_insert:choose_subtree(Root, G0))
         end
     ).
 
@@ -165,13 +164,12 @@ choose_subtree_one_level_test(_) ->
             RootGeo = rstar_geometry:bounding_box([L1, L2]),
             Root = RootGeo#geometry{value=#node{children=[L1, L2]}},
 
-            Tree = #rtree{dimensions=2, root=Root},
             G0 = #geometry{dimensions=2, mbr=[{1,3}, {0,4}]},
 
             % Expect L1 to be selected, since it will cause no overlap
             % to occur, while L2 would overlap with L1.
             ?assertEqual(L1,
-                         rstar_insert:choose_subtree(Tree, G0))
+                         rstar_insert:choose_subtree(Root, G0))
         end
     ).
 
@@ -192,13 +190,12 @@ choose_subtree_two_level_test(_) ->
             RootGeo = rstar_geometry:bounding_box([N1, N2]),
             Root = RootGeo#geometry{value=#node{children=[N1, N2]}},
 
-            Tree = #rtree{dimensions=2, root=Root},
             G0 = #geometry{dimensions=2, mbr=[{6,7}, {4,5}]},
 
             % Expect L3 to be selected, since it will need minimal
             % growth to contain it, while the rest will grow very large
             ?assertEqual(L3,
-                         rstar_insert:choose_subtree(Tree, G0))
+                         rstar_insert:choose_subtree(Root, G0))
         end
     ).
 

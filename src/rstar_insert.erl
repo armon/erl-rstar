@@ -38,11 +38,8 @@
 % CS2c: IF N points to nodes, select on
 %   1) Minimal Area Change
 %   2) Smallest Area
-choose_subtree(Tree, Geo) ->
-    choose_subtree(Tree, Tree#rtree.root, Geo).
-
-choose_subtree(_, Node=#geometry{value=Value}, _) when is_record(Value, leaf) -> Node;
-choose_subtree(Tree, Node, Geo) ->
+choose_subtree(Node=#geometry{value=Value}, _) when is_record(Value, leaf) -> Node;
+choose_subtree(Node, Geo) ->
     % Extract the children
     Children = Node#geometry.value#node.children,
 
@@ -65,7 +62,7 @@ choose_subtree(Tree, Node, Geo) ->
     [FirstOptimal | _] = OptimialChildren,
 
     % Recurse
-    choose_subtree(Tree, FirstOptimal, Geo).
+    choose_subtree(FirstOptimal, Geo).
 
 
 % Computes the overlap between a given geometry
