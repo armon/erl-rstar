@@ -328,7 +328,7 @@ insert_recursive(Params, AllowReinsert, Level, [Leaf], Geo) ->
             {NewLeaf, []};
 
         % Overflow case, check for split or re-insert
-        Level == 0 or not AllowReinsert ->
+        (Level == 0) or (not AllowReinsert) ->
             {N1, N2} = split(Params, NewLeaf),
             {{N1, N2}, []};
 
