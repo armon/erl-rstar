@@ -1,4 +1,5 @@
 -module(rstar_insert).
+-export([insert/3]).
 
 -ifdef(TEST).
 -compile(export_all).
@@ -6,28 +7,6 @@
 
 -include("../include/rstar.hrl").
 
-% R-Tree:
-% Insert:
-% I1: Invoke ChooseLeaf to select leaf L to place E
-% I2: If L has room for E, install E. Else, invoke SplitNode to get L and LL.
-% I3: Invoke AdjustTree on L, providing LL on a split
-% I4: If root split, create new root
-%
-% ChooseLeaf:
-% CL1: Set N to be the root
-% CL2: If N is leaf, return N
-% CL3: If N not leaf, F in N, F requires smallest enlargement to contain E
-% Resolve tie using smallest area
-% CL4: Set N to be F, repeat until leaf
-%
-% AdjustTree:
-% AT1: Set N=L, set NN=LL if applicable
-% AT2: If N is root, stop
-% AT3: P = parent(N), Adjust covering rectangle
-% AT4: If NN, add to P if room. Otherwise SplitNode, to get P and PP.
-% AT5: Set N=P, NN=PP repeat from AT2
-
-% R*-tree:
 % ChooseSubtree:
 % CS1: Set N to be the root
 % CS2: If N is leaf, return N
@@ -213,7 +192,8 @@ split(Params, Node) ->
 
 
 % ChooseSplitAxis
-% CSA1: For each axis: Sort by lower, upper values of axes. Generate (M - 2*m + 2) distributions. Compute S, Sum of Margin values for all distributions.
+% CSA1: For each axis: Sort by lower, upper values of axes. Generate (M - 2*m + 2) distributions.
+% Compute S, Sum of Margin values for all distributions.
 % CSA2: Choose Axis with minimum S
 choose_split_axis(Params, Node) ->
     N = Node#geometry.dimensions,
@@ -294,17 +274,99 @@ choose_split_index(Params, Node, Axis) ->
     [{_, _, Distrib} | _] = Sorted,
     Distrib.
 
+
 % InsertData:
 % I1: Invoke Insert with the leaf level as a param to add new geometry
+insert(Params, Root, Geo) ->
+    % Do an internal insert allowing for reinsertion
+    {Root1, ReInsert} = insert_internal(Params, true, Root, Geo),
+
+    % Re-insert without allowing for more reinsertion
+    lists:foldl(fun(R, TmpRoot) ->
+        {TmpRoot1, []} = insert_internal(Params, false, TmpRoot, R),
+        TmpRoot1
+    end, Root1, ReInsert).
+
 
 % Insert:
 % I1: Invoke ChooseSubtree with level as param to find node N for E
+insert_internal(Params, AllowReinsert, Root, Geo) ->
+    % Determine the traversal path, from root to leaf
+    Path = choose_subtree(Root, Geo, []),
+    RootToLeaf = lists:reverse(Path),
+
+    % Perform a recursive insert and tree repair, since all
+    % nodes on the path need to be adjusted
+    {NewRoot, ReInsert} = insert_recursive(Params, AllowReinsert, 0, RootToLeaf, Geo),
+
+    % Check if the root was split and needs to be reconstructed
+    ReturnRoot = case NewRoot of
+        {R1, R2} ->
+            Children = [R1, R2],
+            RootGeo = rstar_geometry:bounding_box(Children),
+            RootGeo#geometry{value=#node{children=Children}};
+
+        R -> R
+    end,
+
+    % Return the new root along with any nodes to be re-inserted
+    {ReturnRoot, ReInsert}.
+
+
+% Insert:
 % I2: If N has < M entries, insert E. If N has M entries, invoke OverflowTreatment with the level of N as param.
 % I3: If OverflowTreatment is called and a split performed, propogate OverflowTreatment upward. If OFT cause split of root, create new root.
-% I4: Adjust all the MBR in the insertion path
+insert_recursive(Params, AllowReinsert, Level, [Leaf], Geo) ->
+    % Add the entry to the leaf
+    NewEntries = [Geo | Leaf#geometry.value#leaf.entries],
+    NewGeo = rstar_geometry:bounding_box(NewEntries),
+    NewLeaf = NewGeo#geometry{value=#leaf{entries=NewEntries}},
 
-% OverflowTreatment
-% OFT1: If level is not root, and this is first call of OFT at the given level invoke ReInsert, else invoke Split.
+    if
+        % Check if there is space for this entry
+        length(NewEntries) =< Params#rt_params.max ->
+            {NewLeaf, []};
+
+        % Overflow case, check for split or re-insert
+        Level == 0 or not AllowReinsert ->
+            {N1, N2} = split(Params, NewLeaf),
+            {{N1, N2}, []};
+
+        % Allow reinsert in the special case
+        true ->
+            ReInserted = reinsert(Params, NewLeaf),
+            ReducedChild = NewEntries -- ReInserted,
+            ReducedGeo = rstar_geometry:bounding_box(ReducedChild),
+            ReducedNode = ReducedGeo#geometry{value=#leaf{entries=ReducedChild}},
+            {ReducedNode, ReInserted}
+    end;
+
+% I4: Adjust all the MBR in the insertion path
+insert_recursive(Params, AllowReinsert, Level, [Parent | Tail=[Child| _]], Geo) ->
+    {NewChild, ReInsert} = insert_recursive(Params, AllowReinsert, Level + 1, Tail, Geo),
+
+    % Get the new children
+    {_, Children} = Parent#geometry.value,
+    NewChildren = case NewChild of
+        {N1, N2} -> [N1, N2 | lists:delete(Child, Children)];
+        NewNode ->  [NewNode | lists:delete(Child, Children)]
+    end,
+
+    % Update the bounding geometry and propogate
+    NewGeo = rstart_geometry:bounding_box(NewChildren),
+    NewParent = NewGeo#geometry{value=#node{children=NewChildren}},
+
+    % Check for the split case
+    AdjustedParent = case length(NewChildren) of
+        % OFT: It is possible to handle overflow here with a reinsert or split,
+        % however we only perform a split for simplicity
+        L when L > Params#rt_params.max -> split(Params, NewParent);
+        _ -> NewParent
+    end,
+
+    % Return the reconstructed level
+    {AdjustedParent, ReInsert}.
+
 
 % ReInsert:
 % RI1: For all M+1 entries of N, compute distance from center of N to center of entry
