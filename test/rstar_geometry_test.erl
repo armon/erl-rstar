@@ -24,7 +24,9 @@ main_test_() ->
       fun intersect_2d/1,
       fun intersect_3d/1,
       fun num_edges_test/1,
-      fun margin_test/1
+      fun margin_test/1,
+      fun center_2d_test/1,
+      fun center_3d_test/1
      ]}.
 
 setup() -> ok.
@@ -208,6 +210,24 @@ margin_test(_) ->
             ?assertEqual(12.0, rstar_geometry:margin(Geo1)),
             ?assertEqual(36.0, rstar_geometry:margin(Geo2)),
             ?assertEqual(152.0, rstar_geometry:margin(Geo3))
+        end
+    ).
+
+center_2d_test(_) ->
+    ?_test(
+        begin
+            Geo1 = #geometry{dimensions=2, mbr=[{0,3}, {0,3}], value=foo},
+            Expect = #geometry{dimensions=2, mbr=[{1.5, 1.5}, {1.5, 1.5}], value=undefined},
+            ?assertEqual(Expect, rstar_geometry:center(Geo1))
+        end
+    ).
+
+center_3d_test(_) ->
+    ?_test(
+        begin
+            Geo1 = #geometry{dimensions=3, mbr=[{2,4}, {2,4}, {0, 10}], value=foo},
+            Expect = #geometry{dimensions=3, mbr=[{3.0, 3.0}, {3.0, 3.0}, {5.0, 5.0}], value=undefined},
+            ?assertEqual(Expect, rstar_geometry:center(Geo1))
         end
     ).
 

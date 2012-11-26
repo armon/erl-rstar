@@ -1,6 +1,6 @@
 -module(rstar_geometry).
 -export([new/3, origin/1, point2d/3, point3d/4, bounding_box/1,
-         area/1, intersect/2, num_edges/1, margin/1]).
+         area/1, intersect/2, num_edges/1, margin/1, center/1]).
 
 -include("../include/rstar.hrl").
 
@@ -99,6 +99,17 @@ intersect(Geo1, Geo2) ->
         true -> undefined;
         _ -> Geo1#geometry{mbr=Overlap, value=undefined}
     end.
+
+
+% Returns the center of a given geometry
+-spec center(#geometry{}) -> #geometry{}.
+center(Geo) ->
+    % Average to get the center points along each axis
+    CenterPoint = lists:map(fun({Min, Max}) ->
+        Avg = (Min + Max) / 2.0,
+        {Avg, Avg}
+    end, Geo#geometry.mbr),
+    Geo#geometry{mbr=CenterPoint, value=undefined}.
 
 
 % Verifies that the max axis value is greater or equal to the minimum
