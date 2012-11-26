@@ -153,8 +153,8 @@ choose_subtree_leaf_test(_) ->
             G0 = #geometry{dimensions=2, mbr=[{1,3}, {0,4}]},
 
             % Select the root in the case of it being a leaf
-            ?assertEqual(Root,
-                         rstar_insert:choose_subtree(Root, G0))
+            ?assertEqual([Root],
+                         rstar_insert:choose_subtree(Root, G0, []))
         end
     ).
 
@@ -170,8 +170,8 @@ choose_subtree_one_level_test(_) ->
 
             % Expect L1 to be selected, since it will cause no overlap
             % to occur, while L2 would overlap with L1.
-            ?assertEqual(L1,
-                         rstar_insert:choose_subtree(Root, G0))
+            ?assertEqual([L1, Root],
+                         rstar_insert:choose_subtree(Root, G0, []))
         end
     ).
 
@@ -196,8 +196,8 @@ choose_subtree_two_level_test(_) ->
 
             % Expect L3 to be selected, since it will need minimal
             % growth to contain it, while the rest will grow very large
-            ?assertEqual(L3,
-                         rstar_insert:choose_subtree(Root, G0))
+            ?assertEqual([L3, N2, Root],
+                         rstar_insert:choose_subtree(Root, G0, []))
         end
     ).
 
