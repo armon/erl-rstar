@@ -334,7 +334,3 @@ reinsert(Params, Node) ->
     [N || {_Distance, N} <- lists:nthtail(LastP, Sorted)].
 
 
-% Helper to get the number of entries in a leaf or node
-num_entries(Node) -> {_, Children} = Node#geometry.value, length(Children).
-
-
