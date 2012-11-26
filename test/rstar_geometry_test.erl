@@ -26,7 +26,9 @@ main_test_() ->
       fun num_edges_test/1,
       fun margin_test/1,
       fun center_2d_test/1,
-      fun center_3d_test/1
+      fun center_3d_test/1,
+      fun distance_2d_test/1,
+      fun distance_3d_test/1
      ]}.
 
 setup() -> ok.
@@ -228,6 +230,26 @@ center_3d_test(_) ->
             Geo1 = #geometry{dimensions=3, mbr=[{2,4}, {2,4}, {0, 10}], value=foo},
             Expect = #geometry{dimensions=3, mbr=[{3.0, 3.0}, {3.0, 3.0}, {5.0, 5.0}], value=undefined},
             ?assertEqual(Expect, rstar_geometry:center(Geo1))
+        end
+    ).
+
+distance_2d_test(_) ->
+    ?_test(
+        begin
+            Geo1 = #geometry{dimensions=2, mbr=[{0, 0}, {0, 0}]},
+            Geo2 = #geometry{dimensions=2, mbr=[{4, 4}, {4, 4}]},
+            ?assertEqual(0.0, rstar_geometry:distance(Geo1, Geo1)),
+            ?assertEqual(5.656854249492381, rstar_geometry:distance(Geo1, Geo2))
+        end
+    ).
+
+distance_3d_test(_) ->
+    ?_test(
+        begin
+            Geo1 = #geometry{dimensions=3, mbr=[{0, 0}, {0, 0}, {0, 0}]},
+            Geo2 = #geometry{dimensions=3, mbr=[{4, 4}, {4, 4}, {4, 4}]},
+            ?assertEqual(0.0, rstar_geometry:distance(Geo1, Geo1)),
+            ?assertEqual(6.928203230275509, rstar_geometry:distance(Geo1, Geo2))
         end
     ).
 
