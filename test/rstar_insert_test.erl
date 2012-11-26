@@ -346,7 +346,7 @@ reinsert_test(_) ->
             L5 = #geometry{dimensions=2, mbr=[{3, 3}, {3, 3}], value=#leaf{}},
             NGeo = rstar_geometry:bounding_box([L5, L4, L3, L2, L1]),
             N = NGeo#geometry{value=#leaf{entries=[L5, L4, L3, L2, L1]}},
-            Params1 = #rt_params{min=2, max=5, reinsert=2},
+            Params1 = #rt_params{min=2, max=4, reinsert=2},
 
             Expected = [L4, L3],
             ?assertEqual(Expected, rstar_insert:reinsert(Params1, N))

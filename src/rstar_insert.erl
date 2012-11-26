@@ -390,7 +390,7 @@ reinsert(Params, Node) ->
     P = Params#rt_params.reinsert,
 
     % Determine what the nth tail would be
-    LastP = Params#rt_params.max - P,
+    LastP = Params#rt_params.max - P + 1,
 
     % Return the LastP nodes
     [N || {_Distance, N} <- lists:nthtail(LastP, Sorted)].
