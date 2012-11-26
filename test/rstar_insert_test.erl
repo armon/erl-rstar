@@ -26,7 +26,9 @@ main_test_() ->
       fun axis_split_score_test/1,
       fun choose_split_axis_test/1,
       fun choose_split_index_test/1,
-      fun split_test/1
+      fun split_test/1,
+      fun reinsert_test/1,
+      fun num_entries_test/1
      ]}.
 
 setup() -> ok.
@@ -332,6 +334,38 @@ split_test(_) ->
             Expected = {G1, G2},
             ?assertEqual(Expected,
                          rstar_insert:split(Params1, N))
+        end
+    ).
+
+reinsert_test(_) ->
+    ?_test(
+        begin
+            L1 = #geometry{dimensions=2, mbr=[{0,0}, {0,0}], value=#leaf{}},
+            L2 = #geometry{dimensions=2, mbr=[{0,0}, {0,0}], value=#leaf{}},
+            L3 = #geometry{dimensions=2, mbr=[{10, 10}, {10, 10}], value=#leaf{}},
+            L4 = #geometry{dimensions=2, mbr=[{-9, -9}, {-10, -10}], value=#leaf{}},
+            L5 = #geometry{dimensions=2, mbr=[{3, 3}, {3, 3}], value=#leaf{}},
+            NGeo = rstar_geometry:bounding_box([L5, L4, L3, L2, L1]),
+            N = NGeo#geometry{value=#leaf{entries=[L5, L4, L3, L2, L1]}},
+            Params1 = #rt_params{min=2, max=5, reinsert=2},
+
+            Expected = [L4, L3],
+            ?assertEqual(Expected, rstar_insert:reinsert(Params1, N))
+        end
+    ).
+
+num_entries_test(_) ->
+    ?_test(
+        begin
+            L1 = #geometry{dimensions=2, mbr=[{0,0}, {0,0}], value=#leaf{}},
+            L2 = #geometry{dimensions=2, mbr=[{0,0}, {0,0}], value=#leaf{}},
+            L3 = #geometry{dimensions=2, mbr=[{10, 10}, {10, 10}], value=#leaf{}},
+            L4 = #geometry{dimensions=2, mbr=[{-9, -9}, {-10, -10}], value=#leaf{}},
+            L5 = #geometry{dimensions=2, mbr=[{3, 3}, {3, 3}], value=#leaf{}},
+            NGeo = rstar_geometry:bounding_box([L5, L4, L3, L2, L1]),
+            N = NGeo#geometry{value=#leaf{entries=[L5, L4, L3, L2, L1]}},
+
+            ?assertEqual(5, rstar_insert:num_entries(N))
         end
     ).
 

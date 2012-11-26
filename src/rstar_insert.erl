@@ -311,6 +311,30 @@ choose_split_index(Params, Node, Axis) ->
 % RI2: Sort the entries in decreasing order of distance
 % RI3: Remove the first P entries from N and adjust MBR of N
 % RI4: Invoke Insert with the removed entries (p= 30% of M), starting with farthest or closest
+reinsert(Params, Node) ->
+    % Get the center
+    Center = rstar_geometry:center(Node),
 
-num_entries(Node) -> length(Node#geometry.value).
+    % Compute the distances
+    {_, Children} = Node#geometry.value,
+    Distances = lists:map(fun(G) ->
+        {rstar_geometry:distance(Center, rstar_geometry:center(G)), G}
+    end, Children),
+
+    % Sort on distance
+    Sorted = lists:sort(Distances),
+
+    % Get the the number P of nodes to reinsert
+    P = Params#rt_params.reinsert,
+
+    % Determine what the nth tail would be
+    LastP = Params#rt_params.max - P,
+
+    % Return the LastP nodes
+    [N || {_Distance, N} <- lists:nthtail(LastP, Sorted)].
+
+
+% Helper to get the number of entries in a leaf or node
+num_entries(Node) -> {_, Children} = Node#geometry.value, length(Children).
+
 
