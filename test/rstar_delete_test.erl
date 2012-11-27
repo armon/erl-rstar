@@ -95,9 +95,58 @@ collect_records_one_level_test(_) ->
         end
     ).
 
-delete_recursive_leaf_no_undeflow_test(_) -> ok.
-delete_recursive_leaf_root_underflow_test(_) -> ok.
-delete_recursive_leaf_underflow_test(_) -> ok.
+delete_recursive_leaf_no_undeflow_test(_) ->
+    ?_test(
+        begin
+            L1 = #geometry{dimensions=2, mbr=[{1,1}, {1,1}], value=#leaf{}},
+            L2 = #geometry{dimensions=2, mbr=[{0,0}, {0,0}], value=#leaf{}},
+            L3 = #geometry{dimensions=2, mbr=[{2, 2}, {2, 2}], value=#leaf{}},
+            L4 = #geometry{dimensions=2, mbr=[{-1, -1}, {-1, -1}], value=#leaf{}},
+            NGeo = rstar_geometry:bounding_box([L4, L3, L2, L1]),
+            N = NGeo#geometry{value=#leaf{entries=[L4, L3, L2, L1]}},
+            Params1 = #rt_params{min=2, max=5, reinsert=2},
+
+            NewGeo = rstar_geometry:bounding_box([L3, L2, L1]),
+            ExpectedNode = NewGeo#geometry{value=#leaf{entries=[L3, L2, L1]}},
+
+            Expected = {ExpectedNode, []},
+            ?assertEqual(Expected, rstar_delete:delete_recursive(Params1, N, [N], L4))
+        end
+    ).
+
+delete_recursive_leaf_root_underflow_test(_) ->
+    ?_test(
+        begin
+            L1 = #geometry{dimensions=2, mbr=[{1,1}, {1,1}], value=#leaf{}},
+            L2 = #geometry{dimensions=2, mbr=[{0,0}, {0,0}], value=#leaf{}},
+            NGeo = rstar_geometry:bounding_box([L2, L1]),
+            N = NGeo#geometry{value=#leaf{entries=[L2, L1]}},
+            Params1 = #rt_params{min=2, max=5, reinsert=2},
+
+            NewGeo = rstar_geometry:bounding_box([L1]),
+            ExpectedNode = NewGeo#geometry{value=#leaf{entries=[L1]}},
+
+            % Root cannot underflow
+            Expected = {ExpectedNode, []},
+            ?assertEqual(Expected, rstar_delete:delete_recursive(Params1, N, [N], L2))
+        end
+    ).
+
+delete_recursive_leaf_underflow_test(_) ->
+    ?_test(
+        begin
+            L1 = #geometry{dimensions=2, mbr=[{1,1}, {1,1}], value=#leaf{}},
+            L2 = #geometry{dimensions=2, mbr=[{0,0}, {0,0}], value=#leaf{}},
+            NGeo = rstar_geometry:bounding_box([L2, L1]),
+            N = NGeo#geometry{value=#leaf{entries=[L2, L1]}},
+            Params1 = #rt_params{min=2, max=5, reinsert=2},
+
+            % Should underflow
+            Expected = {undefined, [L1]},
+            ?assertEqual(Expected, rstar_delete:delete_recursive(Params1, L1, [N], L2))
+        end
+    ).
+
 delete_recursive_child_underflow_test(_) -> ok.
 delete_recursive_child_no_underflow_test(_) -> ok.
 delete_recursive_parent_underflow_test(_) -> ok.
