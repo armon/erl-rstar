@@ -120,9 +120,17 @@ delete_recursive(Params, Root, [Parent | Tail=[Child| _]], Geo) ->
             {NewParent, ReInsert}
     end.
 
+
+
 % Peforms a pre-order traversal of the subtree and returns
 % all the records from the leaf nodes. Results as if leaves were
 % visited in post order traversal
+collect_records(Nodes) when is_list(Nodes) ->
+    Records = lists:foldl(fun(N, Recs) ->
+        [collect_records(N, []) | Recs]
+    end, [], Nodes),
+    lists:flatten(Records);
+
 collect_records(Node) ->
     Records = collect_records(Node, []),
     lists:append(Records).
