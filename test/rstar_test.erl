@@ -20,7 +20,7 @@ new_bad_dimension(_) ->
     ?_test(
         begin
             ?assertEqual({error, badarg}, rstar:new(0)),
-            ?assertEqual({error, badarg}, rstar:new(1))
+            ?assertEqual({error, badarg}, rstar:new(-1))
         end
     ).
 
