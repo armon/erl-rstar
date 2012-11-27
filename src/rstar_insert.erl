@@ -353,7 +353,7 @@ insert_recursive(Params, AllowReinsert, Level, [Parent | Tail=[Child| _]], Geo) 
     end,
 
     % Update the bounding geometry and propogate
-    NewGeo = rstart_geometry:bounding_box(NewChildren),
+    NewGeo = rstar_geometry:bounding_box(NewChildren),
     NewParent = NewGeo#geometry{value=#node{children=NewChildren}},
 
     % Check for the split case
