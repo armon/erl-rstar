@@ -12,7 +12,19 @@ main_test_() ->
       fun find_leaf_exists_test/1,
       fun find_leaf_not_exists_test/1,
       fun collect_records_leaf_test/1,
-      fun collect_records_one_level_test/1
+      fun collect_records_one_level_test/1,
+      fun delete_recursive_leaf_no_undeflow_test/1,
+      fun delete_recursive_leaf_root_underflow_test/1,
+      fun delete_recursive_leaf_underflow_test/1,
+      fun delete_recursive_child_underflow_test/1,
+      fun delete_recursive_child_no_underflow_test/1,
+      fun delete_recursive_parent_underflow_test/1,
+      fun delete_recursive_parent_root_underflow_test/1,
+      fun delete_internal_no_underflow_test/1,
+      fun delete_internal_single_child_test/1,
+      fun delete_internal_reinsert_test/1,
+      fun delete_not_found_test/1,
+      fun delete_found_test/1
      ]}.
 
 setup() -> ok.
@@ -82,4 +94,17 @@ collect_records_one_level_test(_) ->
             ?assertEqual([L1, L2, L3, L4], rstar_delete:collect_records(Root))
         end
     ).
+
+delete_recursive_leaf_no_undeflow_test(_) -> ok.
+delete_recursive_leaf_root_underflow_test(_) -> ok.
+delete_recursive_leaf_underflow_test(_) -> ok.
+delete_recursive_child_underflow_test(_) -> ok.
+delete_recursive_child_no_underflow_test(_) -> ok.
+delete_recursive_parent_underflow_test(_) -> ok.
+delete_recursive_parent_root_underflow_test(_) -> ok.
+delete_internal_no_underflow_test(_) -> ok.
+delete_internal_single_child_test(_) -> ok.
+delete_internal_reinsert_test(_) -> ok.
+delete_not_found_test(_) -> ok.
+delete_found_test(_) -> ok.
 
