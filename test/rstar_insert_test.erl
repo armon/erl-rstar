@@ -35,7 +35,9 @@ main_test_() ->
       fun insert_recursive_child_split_test/1,
       fun insert_recursive_parent_split_test/1,
       fun insert_internal_no_split_test/1,
-      fun insert_internal_root_split_test/1
+      fun insert_internal_root_split_test/1,
+      fun insert_no_reinsert_test/1,
+      fun insert_reinsert_test/1
      ]}.
 
 setup() -> ok.
@@ -580,6 +582,61 @@ insert_internal_root_split_test(_) ->
 
             Expected = {MergedRoot, []},
             ?assertEqual(Expected, rstar_insert:insert_internal(Params1, false, Root, G))
+        end
+    ).
+
+insert_no_reinsert_test(_) ->
+    ?_test(
+        begin
+            L1 = #geometry{dimensions=2, mbr=[{1,1}, {1,1}], value=#leaf{}},
+            L2 = #geometry{dimensions=2, mbr=[{0,0}, {0,0}], value=#leaf{}},
+            L3 = #geometry{dimensions=2, mbr=[{2, 2}, {2, 2}], value=#leaf{}},
+            L4 = #geometry{dimensions=2, mbr=[{-1, -1}, {-1, -1}], value=#leaf{}},
+            NGeo = rstar_geometry:bounding_box([L4, L3, L2, L1]),
+            N = NGeo#geometry{value=#leaf{entries=[L4, L3, L2, L1]}},
+            Root = NGeo#geometry{value=#node{children=[N]}},
+            Params1 = #rt_params{min=2, max=5, reinsert=2},
+
+            G = #geometry{dimensions=2, mbr=[{3, 3}, {3, 3}], value=#leaf{}},
+            NewGeo = rstar_geometry:bounding_box([G, L4, L3, L2, L1]),
+            ExpectedNode = NewGeo#geometry{value=#leaf{entries=[G, L4, L3, L2, L1]}},
+            ExpectedRoot = NewGeo#geometry{value=#node{children=[ExpectedNode]}},
+
+            ?assertEqual(ExpectedRoot, rstar_insert:insert(Params1, Root, G))
+        end
+    ).
+
+insert_reinsert_test(_) ->
+    ?_test(
+        begin
+            % Construct initial structure
+            L1 = #geometry{dimensions=2, mbr=[{1,1}, {1,1}], value=#leaf{}},
+            L2 = #geometry{dimensions=2, mbr=[{0,0}, {0,0}], value=#leaf{}},
+            L3 = #geometry{dimensions=2, mbr=[{2, 2}, {2, 2}], value=#leaf{}},
+            L4 = #geometry{dimensions=2, mbr=[{-1, -1}, {-1, -1}], value=#leaf{}},
+            NGeo = rstar_geometry:bounding_box([L4, L3, L2, L1]),
+            N = NGeo#geometry{value=#leaf{entries=[L4, L3, L2, L1]}},
+            Params1 = #rt_params{min=2, max=4, reinsert=2},
+
+            EmptyGeo = rstar_geometry:origin(2),
+            EmptyN = EmptyGeo#geometry{value=#leaf{entries=[L2, L2]}},
+
+            Root = NGeo#geometry{value=#node{children=[N, EmptyN]}},
+
+            % New node
+            G = #geometry{dimensions=2, mbr=[{3, 3}, {3, 3}], value=#leaf{}},
+
+            % Expect a re-insert, rebalancing the nodes
+            N1Geo = rstar_geometry:bounding_box([L1, L2, L3, G]),
+            ExpectN1 = N1Geo#geometry{value=#leaf{entries=[G, L3, L2, L1]}},
+
+            N2Geo = rstar_geometry:bounding_box([L2, L4]),
+            ExpectN2 = N2Geo#geometry{value=#leaf{entries=[L4, L2, L2]}},
+
+            ExpectRootGeo = rstar_geometry:bounding_box([N1Geo, N2Geo]),
+            ExpectedRoot = ExpectRootGeo#geometry{value=#node{children=[ExpectN1, ExpectN2]}},
+
+            ?assertEqual(ExpectedRoot, rstar_insert:insert(Params1, Root, G))
         end
     ).
 
