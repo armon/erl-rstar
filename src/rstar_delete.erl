@@ -86,6 +86,13 @@ delete_recursive(Params, Root, [Leaf], Geo) ->
         % re-insert all the children
         L when (Root =/= Leaf) and (L < Params#rt_params.min) -> {undefined, NewChildren};
 
+        % If we are the root, and we delete the last item, we need to
+        % deal with the empty leaf case
+        0 ->
+            LeafGeo = rstar_geometry:origin(Root#geometry.dimensions),
+            NewLeaf = LeafGeo#geometry{value=#leaf{entries=[]}},
+            {NewLeaf, []};
+
         % If we do not underflow, adjust the bounds
         _ ->
             LeafGeo = rstar_geometry:bounding_box(NewChildren),
