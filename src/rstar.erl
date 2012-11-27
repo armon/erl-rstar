@@ -16,7 +16,7 @@ new(Dimensions) -> new(Dimensions, #rt_params{}).
 
 % Returns a new empty R* tree of the specified dimensionality and parameters
 -spec new(integer(), #rt_params{}) -> rtree() | {error, badarg}.
-new(Dimensions, _) when Dimensions =< 1 -> {error, badarg};
+new(Dimensions, _) when Dimensions < 1 -> {error, badarg};
 new(Dimensions, Params) ->
     RootGeo = rstar_geometry:origin(Dimensions),
     Root = RootGeo#geometry{value=#leaf{}},
