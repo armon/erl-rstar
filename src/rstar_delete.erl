@@ -68,7 +68,7 @@ delete_internal(Params, Path, Geo) ->
 
     % Handle the case of the root with a single child
     AdjRoot1 = case AdjRoot#geometry.value of
-        {_, [RootChild]} -> RootChild;
+        {node, [RootChild]} -> RootChild;
         _ -> AdjRoot
     end,
 
@@ -121,7 +121,8 @@ delete_recursive(Params, Root, [Parent | Tail=[Child| _]], Geo) ->
     end.
 
 % Peforms a pre-order traversal of the subtree and returns
-% all the records from the leaf nodes
+% all the records from the leaf nodes. Results as if leaves were
+% visited in post order traversal
 collect_records(Node) ->
     Records = collect_records(Node, []),
     lists:append(Records).
