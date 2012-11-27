@@ -25,6 +25,7 @@ main_test_() ->
       fun delete_internal_single_child_test/1,
       fun delete_internal_reinsert_test/1,
       fun delete_not_found_test/1,
+      fun delete_empty_root_test/1,
       fun delete_found_test/1
      ]}.
 
@@ -378,6 +379,52 @@ delete_internal_reinsert_test(_) ->
         end
     ).
 
-delete_not_found_test(_) -> ok.
-delete_found_test(_) -> ok.
+delete_not_found_test(_) ->
+    ?_test(
+        begin
+            L1 = #geometry{dimensions=2, mbr=[{1,1}, {1,1}], value=#leaf{}},
+            L2 = #geometry{dimensions=2, mbr=[{0,0}, {0,0}], value=#leaf{}},
+            L3 = #geometry{dimensions=2, mbr=[{2, 2}, {2, 2}], value=#leaf{}},
+            L4 = #geometry{dimensions=2, mbr=[{-1, -1}, {-1, -1}], value=#leaf{}},
+            NGeo = rstar_geometry:bounding_box([L4, L3, L2, L1]),
+            N = NGeo#geometry{value=#leaf{entries=[L4, L3, L2, L1]}},
+            Params1 = #rt_params{min=2, max=5, reinsert=2},
+
+            G = #geometry{dimensions=2, mbr=[{0.5, 0.5}, {0.5, 0.5}], value=#leaf{}},
+
+            ?assertEqual(not_found, rstar_delete:delete(Params1, N, G))
+        end
+    ).
+
+delete_empty_root_test(_) ->
+    ?_test(
+        begin
+            L1 = #geometry{dimensions=2, mbr=[{1,1}, {1,1}], value=#leaf{}},
+            NGeo = rstar_geometry:bounding_box([L1]),
+            N = NGeo#geometry{value=#leaf{entries=[L1]}},
+            Params1 = #rt_params{min=2, max=5, reinsert=2},
+
+            % Delete only item
+            Expected = #geometry{dimensions=2, mbr=[{0,0}, {0,0}], value=#leaf{}},
+            ?assertEqual(Expected, rstar_delete:delete(Params1, N, L1))
+        end
+    ).
+
+delete_found_test(_) ->
+    ?_test(
+        begin
+            L1 = #geometry{dimensions=2, mbr=[{1,1}, {1,1}], value=#leaf{}},
+            L2 = #geometry{dimensions=2, mbr=[{0,0}, {0,0}], value=#leaf{}},
+            L3 = #geometry{dimensions=2, mbr=[{2, 2}, {2, 2}], value=#leaf{}},
+            L4 = #geometry{dimensions=2, mbr=[{-1, -1}, {-1, -1}], value=#leaf{}},
+            NGeo = rstar_geometry:bounding_box([L4, L3, L2, L1]),
+            N = NGeo#geometry{value=#leaf{entries=[L4, L3, L2, L1]}},
+            Params1 = #rt_params{min=2, max=5, reinsert=2},
+
+            ExpectGeo = rstar_geometry:bounding_box([L4, L3, L2]),
+            ExpectRoot = ExpectGeo#geometry{value=#leaf{entries=[L4, L3, L2]}},
+
+            ?assertEqual(ExpectRoot, rstar_delete:delete(Params1, N, L1))
+        end
+    ).
 
