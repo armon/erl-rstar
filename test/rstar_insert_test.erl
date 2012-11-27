@@ -30,7 +30,10 @@ main_test_() ->
       fun reinsert_test/1,
       fun insert_recursive_no_overflow_test/1,
       fun insert_recursive_force_split_test/1,
-      fun insert_recursive_force_reinsert_test/1
+      fun insert_recursive_force_reinsert_test/1,
+      fun insert_recursive_child_insert_test/1,
+      fun insert_recursive_child_split_test/1,
+      fun insert_recursive_parent_split_test/1
      ]}.
 
 setup() -> ok.
@@ -424,6 +427,95 @@ insert_recursive_force_reinsert_test(_) ->
 
             Expected = {ExpectN1, [L4, G]},
             ?assertEqual(Expected, rstar_insert:insert_recursive(Params1, true, 10, [N], G))
+        end
+    ).
+
+insert_recursive_child_insert_test(_) ->
+    ?_test(
+        begin
+            L1 = #geometry{dimensions=2, mbr=[{1,1}, {1,1}], value=#leaf{}},
+            L2 = #geometry{dimensions=2, mbr=[{0,0}, {0,0}], value=#leaf{}},
+            L3 = #geometry{dimensions=2, mbr=[{2, 2}, {2, 2}], value=#leaf{}},
+            L4 = #geometry{dimensions=2, mbr=[{-1, -1}, {-1, -1}], value=#leaf{}},
+            NGeo = rstar_geometry:bounding_box([L4, L3, L2, L1]),
+            N = NGeo#geometry{value=#leaf{entries=[L4, L3, L2, L1]}},
+            Root = NGeo#geometry{value=#node{children=[N]}},
+            Params1 = #rt_params{min=2, max=5, reinsert=2},
+
+            G = #geometry{dimensions=2, mbr=[{3, 3}, {3, 3}], value=#leaf{}},
+            NewGeo = rstar_geometry:bounding_box([G, L4, L3, L2, L1]),
+            ExpectedNode = NewGeo#geometry{value=#leaf{entries=[G, L4, L3, L2, L1]}},
+            ExpectedRoot = NewGeo#geometry{value=#node{children=[ExpectedNode]}},
+
+            Expected = {ExpectedRoot, []},
+            ?assertEqual(Expected, rstar_insert:insert_recursive(Params1, true, 10, [Root, N], G))
+        end
+    ).
+
+insert_recursive_child_split_test(_) ->
+    ?_test(
+        begin
+            % Construct initial structure
+            L1 = #geometry{dimensions=2, mbr=[{1,1}, {1,1}], value=#leaf{}},
+            L2 = #geometry{dimensions=2, mbr=[{0,0}, {0,0}], value=#leaf{}},
+            L3 = #geometry{dimensions=2, mbr=[{2, 2}, {2, 2}], value=#leaf{}},
+            L4 = #geometry{dimensions=2, mbr=[{-1, -1}, {-1, -1}], value=#leaf{}},
+            NGeo = rstar_geometry:bounding_box([L4, L3, L2, L1]),
+            N = NGeo#geometry{value=#leaf{entries=[L4, L3, L2, L1]}},
+            Root = NGeo#geometry{value=#node{children=[N]}},
+            Params1 = #rt_params{min=2, max=4, reinsert=2},
+
+            % New node
+            G = #geometry{dimensions=2, mbr=[{3, 3}, {3, 3}], value=#leaf{}},
+
+            % Expect a split
+            N1Geo = rstar_geometry:bounding_box([L4, L2]),
+            ExpectN1 = N1Geo#geometry{value=#leaf{entries=[L4, L2]}},
+
+            N2Geo = rstar_geometry:bounding_box([G, L3, L1]),
+            ExpectN2 = N2Geo#geometry{value=#leaf{entries=[L1, L3, G]}},
+
+            % Root should have both children
+            ExpectRootGeo = rstar_geometry:bounding_box([ExpectN1, ExpectN2]),
+            ExpectRoot = ExpectRootGeo#geometry{value=#node{children=[ExpectN1, ExpectN2]}},
+
+            Expected = {ExpectRoot, []},
+            ?assertEqual(Expected, rstar_insert:insert_recursive(Params1, false, 10, [Root, N], G))
+        end
+    ).
+
+insert_recursive_parent_split_test(_) ->
+    ?_test(
+        begin
+            % Construct initial structure
+            L1 = #geometry{dimensions=2, mbr=[{1,1}, {1,1}], value=#leaf{}},
+            L2 = #geometry{dimensions=2, mbr=[{0,0}, {0,0}], value=#leaf{}},
+            L3 = #geometry{dimensions=2, mbr=[{2, 2}, {2, 2}], value=#leaf{}},
+            L4 = #geometry{dimensions=2, mbr=[{-1, -1}, {-1, -1}], value=#leaf{}},
+            NGeo = rstar_geometry:bounding_box([L4, L3, L2, L1]),
+            N = NGeo#geometry{value=#leaf{entries=[L4, L3, L2, L1]}},
+            Root = NGeo#geometry{value=#node{children=[N, L2, L2, L2]}},
+            Params1 = #rt_params{min=2, max=4, reinsert=2},
+
+            % New node
+            G = #geometry{dimensions=2, mbr=[{3, 3}, {3, 3}], value=#leaf{}},
+
+            % Expect a split
+            N1Geo = rstar_geometry:bounding_box([L4, L2]),
+            ExpectN1 = N1Geo#geometry{value=#leaf{entries=[L4, L2]}},
+
+            N2Geo = rstar_geometry:bounding_box([G, L3, L1]),
+            ExpectN2 = N2Geo#geometry{value=#leaf{entries=[L1, L3, G]}},
+
+            % Root should split
+            ExpectRootGeo1 = rstar_geometry:bounding_box([ExpectN1, L2]),
+            ExpectRoot1 = ExpectRootGeo1#geometry{value=#node{children=[ExpectN1, L2]}},
+
+            ExpectRootGeo2 = rstar_geometry:bounding_box([ExpectN2, L2]),
+            ExpectRoot2 = ExpectRootGeo2#geometry{value=#node{children=[L2, L2, ExpectN2]}},
+
+            Expected = {{ExpectRoot1, ExpectRoot2}, []},
+            ?assertEqual(Expected, rstar_insert:insert_recursive(Params1, false, 10, [Root, N], G))
         end
     ).
 
