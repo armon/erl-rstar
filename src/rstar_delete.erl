@@ -13,6 +13,8 @@
 % E is found or all entries have been checked.
 % FL2: If T is a leaf, check each entry to see if it matches
 % E. If E is found, return T
+find_leaf(Node, Geo) -> find_leaf(Node, Geo, []).
+
 find_leaf(Node=#geometry{value=Value}, Geo, Path) when is_record(Value, leaf) ->
     % Search the children
     Children = Node#geometry.value#leaf.entries,
