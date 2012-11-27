@@ -29,7 +29,10 @@ new(Dimensions, Params) ->
 insert(#rtree{dimensions=TD}, #geometry{dimensions=GD}) when TD =/= GD ->
     {error, dimensionality};
 
-insert(_Tree, _Geometry) -> ok.
+insert(Tree, Geometry) ->
+    % Insert, and return an updated root
+    NewRoot = rstar_insert:insert(Tree#rtree.params, Tree#rtree.root, Geometry),
+    Tree#rtree{root=NewRoot}.
 
 
 % Removes a geometric point from the R* tree and
