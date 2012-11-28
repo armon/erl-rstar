@@ -52,7 +52,8 @@ delete(Tree, Geometry) ->
 search_within(#rtree{dimensions=TD}, #geometry{dimensions=GD}) when TD =/= GD ->
     {error, dimensionality};
 
-search_within(_Tree, _Geometry) -> ok.
+search_within(Tree, Geometry) ->
+    rstar_search:search_within(Tree#rtree.root, Geometry).
 
 
 % Searches for the K-nearest neighbors to the given
@@ -63,7 +64,8 @@ search_nearest(#rtree{dimensions=TD}, #geometry{dimensions=GD}, _) when TD =/= G
 search_nearest(_, _, Nearest) when Nearest =< 0 ->
     {error, badarg};
 
-search_nearest(_Tree, _Geometry, _K) -> ok.
+search_nearest(Tree, Geometry, K) ->
+    rstar_search:search_near(Tree#rtree.root, Geometry, K).
 
 
 % Searches for the geometries contained or intersecting
