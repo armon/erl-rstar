@@ -74,6 +74,17 @@ search_nearest(Tree, Geometry, K) ->
 search_around(#rtree{dimensions=TD}, #geometry{dimensions=GD}, _) when TD =/= GD ->
     {error, dimensionality};
 
-search_around(_Tree, _Geometry, _Distance) -> ok.
+search_around(Tree, Geometry, Distance) ->
+    % Build and expanded geometry around the point
+    NewMBR = [{Min - Distance, Max + Distance} || {Min, Max} <- Geometry#geometry.mbr],
+    NewGeo = Geometry#geometry{mbr=NewMBR},
+
+    % Perform a search_within
+    PrimaryResults = rstar_search:search_within(Tree#rtree.root, NewGeo),
+
+    % Apply a secondary filter
+    lists:filter(fun (R) ->
+        rstar_geometry:distance(R, Geometry) =< Distance
+    end, PrimaryResults).
 
 
