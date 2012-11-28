@@ -28,7 +28,9 @@ main_test_() ->
       fun center_2d_test/1,
       fun center_3d_test/1,
       fun distance_2d_test/1,
-      fun distance_3d_test/1
+      fun distance_3d_test/1,
+      fun min_distance_2d_test/1,
+      fun min_distance_3d_test/1
      ]}.
 
 setup() -> ok.
@@ -250,6 +252,30 @@ distance_3d_test(_) ->
             Geo2 = #geometry{dimensions=3, mbr=[{4, 4}, {4, 4}, {4, 4}]},
             ?assertEqual(0.0, rstar_geometry:distance(Geo1, Geo1)),
             ?assertEqual(6.928203230275509, rstar_geometry:distance(Geo1, Geo2))
+        end
+    ).
+
+min_distance_2d_test(_) ->
+    ?_test(
+        begin
+            Geo1 = #geometry{dimensions=2, mbr=[{0, 0}, {0, 0}]},
+            Geo2 = #geometry{dimensions=2, mbr=[{2, 4}, {2, 4}]},
+            Geo3 = #geometry{dimensions=2, mbr=[{3, 3}, {3, 3}]},
+            ?assertEqual(0.0, rstar_geometry:min_dist(Geo2, Geo2)),
+            ?assertEqual(8.0, rstar_geometry:min_dist(Geo1, Geo2)),
+            ?assertEqual(0.0, rstar_geometry:min_dist(Geo3, Geo2))
+        end
+    ).
+
+min_distance_3d_test(_) ->
+    ?_test(
+        begin
+            Geo1 = #geometry{dimensions=3, mbr=[{0, 0}, {0, 0}, {0, 0}]},
+            Geo2 = #geometry{dimensions=3, mbr=[{2, 4}, {2, 4}, {2, 4}]},
+            Geo3 = #geometry{dimensions=3, mbr=[{3, 3}, {3, 3}, {3, 3}]},
+            ?assertEqual(0.0, rstar_geometry:min_dist(Geo2, Geo2)),
+            ?assertEqual(12.0, rstar_geometry:min_dist(Geo1, Geo2)),
+            ?assertEqual(0.0, rstar_geometry:min_dist(Geo3, Geo2))
         end
     ).
 

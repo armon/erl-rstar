@@ -1,6 +1,7 @@
 -module(rstar_geometry).
 -export([new/3, origin/1, point2d/3, point3d/4, bounding_box/1,
-         area/1, intersect/2, num_edges/1, margin/1, center/1, distance/2]).
+         area/1, intersect/2, num_edges/1, margin/1, center/1,
+         distance/2, min_dist/2]).
 
 -include("../include/rstar.hrl").
 
@@ -126,6 +127,23 @@ distance(Geo1, Geo2) ->
 
     % The square root is the Euclidean distance
     math:sqrt(SumDistance).
+
+
+% Returns the minimum distance between a point and rectangle
+-spec min_dist(#geometry{}, #geometry{}) -> float().
+min_dist(Point, Rect) ->
+    % Get the square of distances along each axis
+    Distances = lists:zipwith(fun({P, _}, {MinR, MaxR}) ->
+        Val = if
+            P < MinR -> MinR - P;
+            P > MaxR -> P - MaxR;
+            true -> 0
+        end,
+        math:pow(Val, 2)
+    end, Point#geometry.mbr, Rect#geometry.mbr),
+
+    % Sum the distances
+    lists:sum(Distances).
 
 
 % Verifies that the max axis value is greater or equal to the minimum
