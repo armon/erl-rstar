@@ -34,10 +34,10 @@ search_within(Node, Geo, Results) ->
 
 % Returns the K nearest points to the given Geometry
 search_near(Node, Geo, K) ->
-    search_near_recursive(Node, Geo, K, gb_sets:new()).
+    Results = search_near_recursive(Node, Geo, K, gb_sets:new()),
+    [R || {_, R} <- gb_sets:to_list(Results)].
 
 search_near_recursive(#geometry{value=Value}, Geo, K, Results) when is_record(Value, leaf) ->
-    Children = Value#leaf.entries,
     lists:foldl(fun(C, Res) ->
         % Compute the center the distance to the target geometry
         Distance = rstar_geometry:min_dist(Geo, C),
@@ -54,14 +54,14 @@ search_near_recursive(#geometry{value=Value}, Geo, K, Results) when is_record(Va
                     true -> Res
                 end
         end
-    end, Results, Children);
+    end, Results, Value#leaf.entries);
 
 search_near_recursive(Node, Geo, K, Results) ->
     % Create an Active Branch List based on our children sorted by their
     % minimum distance from the query region
     Children = Node#geometry.value#node.children,
-    Measured = lists:map(fun(C) -> {rstar_geometry:min_dist(Geo, C), C} end, Children),
-    ActiveBranchList = lists:sort(Measured),
+    Sorted = lists:sort([{rstar_geometry:min_dist(Geo, C), C} || C <- Children]),
+    ActiveBranchList = [B || {_, B} <- Sorted],
 
     % Prune the children and iterate over the branches
     Pruned = prune_branches(Geo, K, ActiveBranchList, Results),
