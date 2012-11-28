@@ -30,19 +30,21 @@ insert(#rtree{dimensions=TD}, #geometry{dimensions=GD}) when TD =/= GD ->
     {error, dimensionality};
 
 insert(Tree, Geometry) ->
-    % Insert, and return an updated root
     NewRoot = rstar_insert:insert(Tree#rtree.params, Tree#rtree.root, Geometry),
     Tree#rtree{root=NewRoot}.
 
 
 % Removes a geometric point from the R* tree and
 % returns a new tree
--spec delete(rtree(), geometry()) -> rtree().
+-spec delete(rtree(), geometry()) -> not_found | rtree().
 delete(#rtree{dimensions=TD}, #geometry{dimensions=GD}) when TD =/= GD ->
     {error, dimensionality};
 
-delete(_Tree, _Geometry) -> ok.
-
+delete(Tree, Geometry) ->
+    case rstar_insert:delete(Tree#rtree.params, Tree#rtree.root, Geometry) of
+        not_found -> not_found;
+        NewRoot -> Tree#rtree{root=NewRoot}
+    end.
 
 % Searches for the geometries contained or intersecting
 % the given geometry
