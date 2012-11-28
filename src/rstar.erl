@@ -41,7 +41,7 @@ delete(#rtree{dimensions=TD}, #geometry{dimensions=GD}) when TD =/= GD ->
     {error, dimensionality};
 
 delete(Tree, Geometry) ->
-    case rstar_insert:delete(Tree#rtree.params, Tree#rtree.root, Geometry) of
+    case rstar_delete:delete(Tree#rtree.params, Tree#rtree.root, Geometry) of
         not_found -> not_found;
         NewRoot -> Tree#rtree{root=NewRoot}
     end.
