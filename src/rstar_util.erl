@@ -7,13 +7,13 @@
 % bound on points, and number of elements
 -spec random_tree(integer(), integer(), integer()) -> #rtree{}.
 random_tree(Dimensions, Bounds, Num) ->
-    % Get random points
-    Points = [random_geo(Dimensions, Bounds) || _N <- lists:seq(1, Num)],
+    random_tree_recursive(rstar:new(Dimensions), Dimensions, Bounds, Num).
 
-    % Insert all the points, return new tree
-    lists:foldl(fun(G, T) ->
-        rstar:insert(T, G)
-    end, rstar:new(Dimensions), Points).
+% Recursively builds the tree
+random_tree_recursive(Tree, _, _, 0) -> Tree;
+random_tree_recursive(Tree, Dimensions, Bounds, Num) ->
+    T = rstar:insert(Tree, random_geo(Dimensions, Bounds)),
+    random_tree_recursive(T, Dimensions, Bounds, Num - 1).
 
 
 % Generates a random geometry with given dimentionality
