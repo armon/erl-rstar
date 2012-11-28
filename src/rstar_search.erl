@@ -19,7 +19,7 @@ search_within(#geometry{value=Value}, Geo, Results) when is_record(Value, leaf) 
             % Add the child to the result set
             _ -> [Child | Res]
         end
-    end, Results, Value#node.children);
+    end, Results, Value#leaf.entries);
 
 search_within(Node, Geo, Results) ->
     lists:foldl(fun(Child, Res) ->
@@ -27,7 +27,7 @@ search_within(Node, Geo, Results) ->
             undefined -> Res;
 
             % Recurse into the matching node
-            _ -> search_within(Child, Results)
+            _ -> search_within(Child, Geo, Res)
         end
     end, Results, Node#geometry.value#node.children).
 
