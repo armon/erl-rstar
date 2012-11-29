@@ -27,7 +27,7 @@ search_2d(_) ->
     {timeout, 30, ?_test(
         begin
             ?assertEqual(true, proper:quickcheck(rstar_statem(),
-                                                 [{numtests, 1000}, {to_file, user}]))
+                                                 [{numtests, 2000}, {to_file, user}]))
         end
     )}.
 
@@ -53,16 +53,19 @@ random_distance() ->
 
 % Initial state creates a tree with no geometries
 initial_state() ->
-    #state{tree=rstar:new(2)}.
+    % Reduce the fan-out so we get taller trees. This
+    % is so that we can build more complex trees faster.
+    Params = #rt_params{max=8, min=2, reinsert=3},
+    #state{tree=rstar:new(2, Params)}.
 
 
 % Picks to either do an insert, delete or search near
 command(#state{tree=Tree, geos=Geos}) ->
     weighted_union([
-        {5, {call, rstar, insert, [Tree, random_geo()]}},
+        {6, {call, rstar, insert, [Tree, random_geo()]}},
         {min(1, length(Geos)), {call, rstar, delete, [Tree, oneof(Geos)]}},
         {1, {call, rstar, delete, [Tree, random_geo()]}},
-        {3, {call, rstar, search_around, [Tree, random_geo(), random_distance()]}}
+        {2, {call, rstar, search_around, [Tree, random_geo(), random_distance()]}}
     ]).
 
 
