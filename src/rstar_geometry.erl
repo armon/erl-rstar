@@ -37,20 +37,32 @@ point3d(X, Y, Z, Value) -> new(3, [{X, X}, {Y, Y}, {Z, Z}], Value).
 % Returns a new geometry which is a bounding box of
 % the given geometries
 -spec bounding_box([#geometry{}]) -> #geometry{}.
-bounding_box([]) -> {error, badarg};
-bounding_box([First | MoreGeo]) ->
-    % Fold over each geometry and extend the MBR
-    BindingMBR = lists:foldl(fun (Geo, Bounding) ->
-        % Zip the MBR axes of the current Geometry with
-        % that of the Bounding axes
-        lists:zipwith(fun ({MinA, MaxA}, {MinB, MaxB}) ->
-            {min(MinA, MinB), max(MaxA, MaxB)}
-        end, Geo#geometry.mbr, Bounding)
-    end, First#geometry.mbr, MoreGeo),
+bounding_box([First | More]) ->
+    bounding_box_r(First, More, First#geometry.mbr);
+bounding_box([]) -> {error, badarg}.
 
-    % Create a binding geometry with the new MBR
-    % and an undefined value
-    First#geometry{mbr=BindingMBR, value=undefined}.
+
+% Recursively handles each geometry
+bounding_box_r(G, [First | MoreGeo], Bound) ->
+    NB = bounding_mbr(First#geometry.mbr, Bound, []),
+    bounding_box_r(G, MoreGeo, NB);
+bounding_box_r(G, [], Bound) ->
+    G#geometry{mbr=Bound, value=undefined}.
+
+
+% Recursively handles each axis
+bounding_mbr([{MinA, MaxA}|More1], [{MinB, MaxB}|More2], Bound) ->
+    Min = if
+        MinA < MinB -> MinA;
+        true -> MinB
+    end,
+    Max = if
+        MaxA < MaxB -> MaxB;
+        true -> MaxA
+    end,
+    NB = [{Min, Max} | Bound],
+    bounding_mbr(More1, More2, NB);
+bounding_mbr([], [], Bound) -> lists:reverse(Bound).
 
 
 % Returns the area of the given geometry
