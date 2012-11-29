@@ -47,22 +47,23 @@ choose_subtree(Node, Geo, Path) ->
 % Computes the overlap between a given geometry
 % and a list of other geometries
 overlap(Geo, OtherGeo) ->
-    lists:foldl(fun(G, Sum) ->
-        % Do not compute the intersection of ourself
-        Intersect = case G of
-            Geo -> undefined;
-            _ -> rstar_geometry:intersect(Geo, G)
-        end,
+    overlap_r(Geo, OtherGeo, 0).
 
-        % Compute the area if we have one
-        Area = case Intersect of
-            undefined -> 0;
-            _ -> rstar_geometry:area(Intersect)
-        end,
+% Do not computer overlap with original node
+overlap_r(Geo, [Geo | Other], Sum) ->
+    overlap_r(Geo, Other, Sum);
 
-        % Grow the accumulator by the overlap area
-        Sum + Area
-    end, 0, OtherGeo).
+overlap_r(Geo, [G | Other], Sum) ->
+    Intersect = rstar_geometry:intersect(Geo, G),
+    case Intersect of
+        undefined -> overlap_r(Geo, Other, Sum);
+        _ ->
+            Area = rstar_geometry:area(Intersect),
+            overlap_r(Geo, Other, Sum + Area)
+    end;
+
+% Return the overlap when no more points remain
+overlap_r(_, [], Sum) -> Sum.
 
 
 % Returns the list of geometry objects
