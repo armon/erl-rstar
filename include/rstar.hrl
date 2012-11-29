@@ -10,9 +10,9 @@
 
 % Contains the parameters of the R*-tree. Contains a default configuration.
 -record(rt_params, {
-    max=32,
-    min=12,
-    reinsert=10
+    max=8,
+    min=2,
+    reinsert=2
 }).
 
 % A rtree object contains the root node and the dimensionality
