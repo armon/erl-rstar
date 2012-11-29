@@ -13,23 +13,23 @@
 
 
 main_test_() ->
-    {foreach,
+    {timeout, 30, {foreach,
      fun setup/0,
      fun cleanup/1,
      [
       fun search_2d/1
-     ]}.
+     ]}}.
 
 setup() -> ok.
 cleanup(_) -> ok.
 
 search_2d(_) ->
-    ?_test(
+    {timeout, 30, ?_test(
         begin
             ?assertEqual(true, proper:quickcheck(rstar_statem(),
-                                                 [{numtests, 100}, {to_file, user}]))
+                                                 [{numtests, 1000}, {to_file, user}]))
         end
-    ).
+    )}.
 
 rstar_statem() ->
     ?FORALL(Cmds, commands(?MODULE),
