@@ -86,20 +86,25 @@ margin(Geometry) ->
 % Returns the overlapping geometry or 0
 -spec intersect(#geometry{}, #geometry{}) -> #geometry{} | undefined.
 intersect(Geo1, Geo2) ->
-    Overlap = lists:zipwith(fun ({MinA, MaxA}, {MinB, MaxB}) ->
-            Min = max(MinA, MinB),
-            Max = min(MaxA, MaxB),
-            case Min =< Max of
-                true -> {Min, Max};
-                _ -> undefined
-            end
-       end, Geo1#geometry.mbr, Geo2#geometry.mbr),
+    intersect_r(Geo1, Geo1#geometry.mbr, Geo2#geometry.mbr, []).
 
-    % Check if any of the axes did not overlap
-    case lists:member(undefined, Overlap) of
-        true -> undefined;
-        _ -> Geo1#geometry{mbr=Overlap, value=undefined}
-    end.
+intersect_r(G, [{MinA, MaxA} | More1], [{MinB, MaxB} |More2], Intersect) ->
+    Min = if
+        MinA < MinB -> MinB;
+        true -> MinA
+    end,
+    Max = if
+        MaxA < MaxB -> MaxA;
+        true -> MaxB
+    end,
+    if
+        Min =< Max ->
+            intersect_r(G, More1, More2, [{Min, Max} | Intersect]);
+        true -> undefined
+    end;
+
+intersect_r(G, [], [], Intersect) ->
+    G#geometry{mbr=lists:reverse(Intersect), value=undefined}.
 
 
 % Returns the center of a given geometry
