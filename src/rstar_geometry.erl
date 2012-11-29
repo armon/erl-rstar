@@ -68,10 +68,11 @@ bounding_mbr([], [], Bound) -> lists:reverse(Bound).
 % Returns the area of the given geometry
 -spec area(#geometry{}) -> float().
 area(Geometry) ->
-    lists:foldl(fun({MinV, MaxV}, Sum) ->
-        Sum * (MaxV - MinV)
-    end, 1, Geometry#geometry.mbr).
+    area_r(Geometry#geometry.mbr, 1).
 
+area_r([{MinV, MaxV} | More], Sum) ->
+    area_r(More, Sum * (MaxV - MinV));
+area_r([], Sum) -> Sum.
 
 % Returns the number of edges in a given geometry
 -spec num_edges(#geometry{}) -> integer().
