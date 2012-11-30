@@ -135,16 +135,16 @@ center(Geo) ->
 % the minimum bounds for non-point geometries.
 -spec distance(#geometry{}, #geometry{}) -> float().
 distance(Geo1, Geo2) ->
-    % Get the square of distances along each axis
-    Distances = lists:zipwith(fun({MinA, _}, {MinB, _}) ->
-        math:pow(MinB - MinA, 2)
-    end, Geo1#geometry.mbr, Geo2#geometry.mbr),
-
-    % Sum the distances
-    SumDistance = lists:sum(Distances),
+    % Sum the square distances
+    SumDistance = distance_r(Geo1#geometry.mbr,
+                             Geo2#geometry.mbr, 0),
 
     % The square root is the Euclidean distance
     math:sqrt(SumDistance).
+
+distance_r([{MinA, _} | More1], [{MinB, _} | More2], Sum) ->
+    distance_r(More1, More2, math:pow(MinB - MinA, 2) + Sum);
+distance_r([], [], Sum) -> Sum.
 
 
 % Returns the minimum distance between a point and rectangle
