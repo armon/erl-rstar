@@ -126,10 +126,8 @@ intersect_r(G, [], [], Intersect) ->
 -spec center(#geometry{}) -> #geometry{}.
 center(Geo) ->
     % Average to get the center points along each axis
-    CenterPoint = lists:map(fun({Min, Max}) ->
-        Avg = (Min + Max) / 2.0,
-        {Avg, Avg}
-    end, Geo#geometry.mbr),
+    CenterPoint = [{(Min+Max)/2.0, (Min+Max)/2.0} ||
+            {Min, Max} <- Geo#geometry.mbr],
     Geo#geometry{mbr=CenterPoint, value=undefined}.
 
 
