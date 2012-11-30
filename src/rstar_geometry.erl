@@ -85,15 +85,17 @@ num_edges(Geometry) ->
 -spec margin(#geometry{}) -> float().
 margin(Geometry) ->
     % Sum length of each axis
-    AxisSum = lists:foldl(fun({MinV, MaxV}, Sum) ->
-        Sum + (MaxV - MinV)
-    end, 0, Geometry#geometry.mbr),
+    AxisSum = margin_r(Geometry#geometry.mbr, 0),
 
     % Figure out the scaling factor,
     Scale = num_edges(Geometry) / Geometry#geometry.dimensions,
 
     % Multiple the sum by the scale
     AxisSum * Scale.
+
+margin_r([{MinV, MaxV} | More], Sum) ->
+    margin_r(More, Sum + (MaxV - MinV));
+margin_r([], Sum) -> Sum.
 
 
 % Returns the overlapping geometry or 0
