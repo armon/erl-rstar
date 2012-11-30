@@ -150,18 +150,16 @@ distance_r([], [], Sum) -> Sum.
 % Returns the minimum distance between a point and rectangle
 -spec min_dist(#geometry{}, #geometry{}) -> float().
 min_dist(Point, Rect) ->
-    % Get the square of distances along each axis
-    Distances = lists:zipwith(fun({P, _}, {MinR, MaxR}) ->
-        Val = if
-            P < MinR -> MinR - P;
-            P > MaxR -> P - MaxR;
-            true -> 0
-        end,
-        math:pow(Val, 2)
-    end, Point#geometry.mbr, Rect#geometry.mbr),
+    min_dist_r(Point#geometry.mbr, Rect#geometry.mbr, 0.0).
 
-    % Sum the distances
-    lists:sum(Distances).
+min_dist_r([{P, _} | More1], [{MinR, MaxR} | More2], Sum) ->
+    Val = if
+        P < MinR -> math:pow(MinR - P, 2);
+        P > MaxR -> math:pow(P - MaxR, 2);
+        true -> 0.0
+    end,
+    min_dist_r(More1, More2, Sum + Val);
+min_dist_r([], [], Sum) -> Sum.
 
 
 % Verifies that the max axis value is greater or equal to the minimum
