@@ -82,5 +82,5 @@ Related works:
 * [R-trees: A dynamic index structure for spacial searching](http://www.cs.jhu.edu/~misha/ReadingSeminar/Papers/Guttman84.pdf)
 * [The R*-tree: An Efficient and Robust Access Method for Points and Rectangles](http://www.cs.ucr.edu/~tsotras/cs236/F11/rstar.pdf)
 * [Nearest Neighbor Queries](http://postgis.refractions.net/support/nearestneighbor.pdf)
-* [Enhanced Nearest Neighbor Search on the R-tree](www.cse.cuhk.edu.hk/~adafu/Pub/rtree.ps)
+* [Enhanced Nearest Neighbor Search on the R-tree](http://www.cse.cuhk.edu.hk/~adafu/Pub/rtree.ps)
 
