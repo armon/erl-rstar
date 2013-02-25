@@ -1,4 +1,4 @@
-Erlang Rstar
+Erlang Rstar [![Build Status](https://travis-ci.org/armon/erl-rstar.png)](https://travis-ci.org/armon/erl-rstar)
 =========
 
 This application provides a pure Erlang implementation of the R*-tree
