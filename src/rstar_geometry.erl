@@ -1,7 +1,7 @@
 -module(rstar_geometry).
 -export([new/3, origin/1, point2d/3, point3d/4, bounding_box/1,
          area/1, intersect/2, num_edges/1, margin/1, center/1,
-         distance/2, min_dist/2]).
+         distance/2, min_dist/2, value/1]).
 
 -include("../include/rstar.hrl").
 
@@ -170,4 +170,8 @@ valid_axes([{MinV, MaxV}| Other], Length) ->
         true -> {error, {badarg, {MinV, MaxV}}}
     end.
 
+% Returns the opaque value of the given geometry
+-spec value(#geometry{}) -> any().
+value(Geometry) ->
+    Geometry#geometry.value.
 
