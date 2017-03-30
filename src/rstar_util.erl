@@ -20,7 +20,7 @@ random_tree(Tree, Dimensions, Bounds, Num) ->
 % and axis bounds
 -spec random_geo(integer(), integer()) -> #geometry{}.
 random_geo(Dimensions, Bounds) ->
-    Rand = random:uniform(Bounds),
+    Rand = rand:uniform(Bounds),
     MBR = [{Rand, Rand} || _D <- lists:seq(1, Dimensions)],
     #geometry{dimensions=Dimensions, mbr=MBR, value=Rand}.
 
