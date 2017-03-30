@@ -73,6 +73,10 @@ Various queries:
     % Find the nearest 20 points
     Matching = rstar:search_nearest(TFinal, Point, 20),
 
+Dependencies
+------------
+
+Requires Erlang 18.0 or higher.
 
 References
 ----------
