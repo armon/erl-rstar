@@ -4,3 +4,4 @@ deps
 *.beam
 *.plt
 ebin/
+_build
